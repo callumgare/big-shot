@@ -8,8 +8,8 @@
         <button class="closeButton" @click="closeSlideShow">X</button>
       </div>
     </div>
-    <div 
-      v-for="slide in loadedSlides" 
+    <div
+      v-for="slide in loadedSlides"
       :key="slide.index"
       :class="['slide', {'current': slide.index === currentSlideIndex}]"
       :ref="`slide-${slide.index}`"
@@ -43,34 +43,34 @@
 export default {
   name: 'BigShot',
   props: ['slideData', 'rememberScale'],
-  data() {
+  data () {
     return {
       currentSlideIndex: this.slideData?.length > 0 ? 0 : -1,
       scale: undefined,
       slidesMap: new WeakMap(),
       maxLoadedPreviousSlides: 2,
-      maxLoadedNextSlides: 3,
-    };
+      maxLoadedNextSlides: 3
+    }
   },
-  created() {
-    window.addEventListener('keydown', this.keyDownListener);
-    window.addEventListener('resize', this.resizeWindowListener);
+  created () {
+    window.addEventListener('keydown', this.keyDownListener)
+    window.addEventListener('resize', this.resizeWindowListener)
   },
-  mounted() {
+  mounted () {
     // Remove class used for triggering animation after animation has finished
     const loopIndicator = this.$el.querySelector('.loopIndicator')
     loopIndicator.addEventListener('transitionend', event => {
-      if(event.propertyName !== 'opacity') return;
+      if (event.propertyName !== 'opacity') return
       loopIndicator.classList.remove('animate')
     })
 
-    this.$nextTick(this.setupLoadedSlides);
+    this.$nextTick(this.setupLoadedSlides)
   },
-  updated() {
-    this.$nextTick(this.setupLoadedSlides);
+  updated () {
+    this.$nextTick(this.setupLoadedSlides)
   },
   computed: {
-    slides() {
+    slides () {
       const slides = []
       for (const [index, data] of this.slideData.entries()) {
         if (!this.slidesMap.has(data)) {
@@ -93,111 +93,115 @@ export default {
      * performance reasons only the current slide and a few slides before
      * and after are ever rendered.
      */
-    loadedSlides() {
+    loadedSlides () {
       const numOfLoadedSlides = Math.min(
         this.numOfSlides,
-        this.maxLoadedPreviousSlides + 1 + this.maxLoadedNextSlides,
-      );
+        this.maxLoadedPreviousSlides + 1 + this.maxLoadedNextSlides
+      )
 
-      const loadedSlides = [];
+      const loadedSlides = []
 
       for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
         const slideIndex = this.wrapIndex(
-          arrayIndex + this.currentSlideIndex - this.maxLoadedPreviousSlides,
-        );
-        loadedSlides.push(this.slides[slideIndex]);
+          arrayIndex + this.currentSlideIndex - this.maxLoadedPreviousSlides
+        )
+        loadedSlides.push(this.slides[slideIndex])
       }
 
-      return loadedSlides;
+      return loadedSlides
     },
-    numOfSlides() {
-      return this.slideData?.length || 0;
-    },
+    numOfSlides () {
+      return this.slideData?.length || 0
+    }
   },
   methods: {
-    /** 
+    /**
      * For a given index value check if it's in bounds (i.e. equal to or between
-     * the first and the last slide) and if not then wrap around so it is. For 
+     * the first and the last slide) and if not then wrap around so it is. For
      * example -1 will become the index of the last slide.
      */
-    wrapIndex(index) {
+    wrapIndex (index) {
       return index >= 0
         ? index % this.numOfSlides
-        : ((index % this.numOfSlides) + this.numOfSlides) % this.numOfSlides;
+        : ((index % this.numOfSlides) + this.numOfSlides) % this.numOfSlides
     },
     /**
      * Managers the DOM elements which make up the slide show. Attaches event
      * handlers and extracts the metadata from the loaded media, ensures it is
      * positioned correctly etc.
      */
-    setupLoadedSlides() {
+    setupLoadedSlides () {
       for (const slide of this.slides) {
-        if (slide.elm) continue;
-        slide.elm = this.$refs[`slide-${slide.index}`]?.[0] || null
+        if (slide.elm) continue
+        // eslint-disable-line
+        slide.elm = (
+          this.$refs[`slide-${slide.index}`] &&
+          this.$refs[`slide-${slide.index}`][0]
+        ) || null
         slide.mediaElm = slide.elm
           ? slide.elm.querySelector('.media')
           : null
 
         slide.mediaElm.addEventListener('click', () => {
-          this.toggleScaleMode(this.currentSlide);
-        });
+          this.toggleScaleMode(this.currentSlide)
+        })
         slide.mediaElm.addEventListener('play', () => {
           slide.elm.querySelector('.playButton').classList.remove('show')
-        });
+        })
         slide.mediaElm.addEventListener('pause', () => {
           slide.elm.querySelector('.playButton').classList.add('show')
-        });
+        })
         // Remove class for smothing sizing change after animation has finished
         slide.mediaElm.addEventListener('transitionend', () => {
           slide.mediaElm.classList.remove('animateZoom')
         })
         const processLoadedMedia = () => {
-          this.saveMediaMetadata(slide);
-          this.positionLoadedSlide(slide, this.getInitialScale(slide));
+          this.saveMediaMetadata(slide)
+          this.positionLoadedSlide(slide, this.getInitialScale(slide))
         }
         if (slide.mediaElm.completed) {
           processLoadedMedia()
         } else {
           // Used by images
-          slide.mediaElm.addEventListener('load', processLoadedMedia);
+          slide.mediaElm.addEventListener('load', processLoadedMedia)
           // Used by videos
-          slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia);
+          slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
         }
       };
     },
-    /** 
+    /**
      * Positions on the page the media of the current slide. This involves both
      * shifting and scaling the DOM element based on the dimentions of the media
      * and the current zoom level.
      */
-    positionLoadedSlide(slide) {
-      const {container: containerSize, media: mediaSize} = this.getSlideDimensions(slide)
-      const translateHeight = (containerSize.height / 2) - (mediaSize.height / 2);
-      const translateWidth = (containerSize.width / 2) - (mediaSize.width / 2);
-      const scaleWidth = containerSize.width / mediaSize.width;
-      const scaleHeight = containerSize.height / mediaSize.height;
-      const scale = Math.min(scaleWidth, scaleHeight);
-      const transformFunctions = [];
-      
-      // Scale first to natural size
-      transformFunctions.push(`translate(${translateWidth}px, ${translateHeight}px)`);
+    positionLoadedSlide (slide) {
+      const { container: containerSize, media: mediaSize } = this.getSlideDimensions(slide)
+      const translateHeight = (containerSize.height / 2) - (mediaSize.height / 2)
+      const translateWidth = (containerSize.width / 2) - (mediaSize.width / 2)
+      const scaleWidth = containerSize.width / mediaSize.width
+      const scaleHeight = containerSize.height / mediaSize.height
+      const scale = Math.min(scaleWidth, scaleHeight)
+      const transformFunctions = []
 
-      if (slide.scale === "contain") {
+      // Scale first to natural size
+      transformFunctions.push(`translate(${translateWidth}px, ${translateHeight}px)`)
+
+      if (slide.scale === 'contain') {
         // Then scale to contain size if necessary
-        transformFunctions.push(`scale(${scale})`);
+        transformFunctions.push(`scale(${scale})`)
       }
 
       // eslint-disable-next-line no-param-reassign
-      slide.mediaElm.style.transform = transformFunctions.join(' ');
+      slide.mediaElm.style.transform = transformFunctions.join(' ')
 
       // eslint-disable-next-line no-param-reassign
-      slide.mediaElm.style.display = '';
+      slide.mediaElm.style.display = ''
     },
-    /** 
+    /**
      * Positions the DOM media elements of each slide currently loaded into the
      * DOM.
      */
-    positionAllLoadedSlides() {
+    positionAllLoadedSlides () {
       for (const slide of this.slides) {
         if (slide !== this.currentSlide) {
           slide.scale = this.getInitialScale(slide)
@@ -208,7 +212,7 @@ export default {
     /**
      * Plays the video of a given slide if that slide has a video.
      */
-    playVideo(slide) {
+    playVideo (slide) {
       if (slide.mediaElm?.play) {
         slide.mediaElm.play()
         setTimeout(() => {
@@ -218,44 +222,44 @@ export default {
         }, 50)
       }
     },
-    /** 
+    /**
      * Extracts certain metadata from slide media
      */
-    saveMediaMetadata(slide) {
-      slide.mediaHeight = slide.mediaElm.naturalHeight || slide.mediaElm.videoHeight;
-      slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth;
+    saveMediaMetadata (slide) {
+      slide.mediaHeight = slide.mediaElm.naturalHeight || slide.mediaElm.videoHeight
+      slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth
       slide.biggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
       slide.scale = this.getInitialScale(slide)
     },
-    /** 
+    /**
      * Prepares for close and emits close event.
      */
-    closeSlideShow() {
-      window.location.hash = '';
-      this.$emit('exited');
+    closeSlideShow () {
+      window.location.hash = ''
+      this.$emit('exited')
     },
-    /** 
+    /**
      * Move to the next slide
      */
-    nextSlide() {
+    nextSlide () {
       return this.changeCurrentSlideBy(1)
     },
-    /** 
+    /**
      * Go back to the previous slide
      */
-    previousSlide() {
+    previousSlide () {
       return this.changeCurrentSlideBy(-1)
     },
-    /** 
+    /**
      * Move forwards or back by the given number of slides
      */
-    changeCurrentSlideBy(delta) {
+    changeCurrentSlideBy (delta) {
       const newIndexWithoutWrap = this.currentSlideIndex + delta
 
       // Trigger loop indicator if change means going between the start and end
       // slides
       if (
-        newIndexWithoutWrap < 0 || 
+        newIndexWithoutWrap < 0 ||
         newIndexWithoutWrap > (this.numOfSlides - 1)
       ) {
         const loopIndicator = this.$el.querySelector('.loopIndicator')
@@ -273,73 +277,73 @@ export default {
 
       return this.changeCurrentSlideTo(
         this.wrapIndex(newIndexWithoutWrap)
-      );
+      )
     },
-    /** 
+    /**
      * Go to the given slide
      */
-    changeCurrentSlideTo(newCurrentSlideIndex) {
+    changeCurrentSlideTo (newCurrentSlideIndex) {
       this.currentSlide.mediaElm?.pause?.()
-      this.currentSlideIndex = newCurrentSlideIndex;
+      this.currentSlideIndex = newCurrentSlideIndex
       this.playVideo(this.currentSlide)
     },
-    /** 
+    /**
      * Toggle between the different zoom levels
      */
-    toggleScaleMode(slide) {
+    toggleScaleMode (slide) {
       let newScale
-      if (slide.biggerThanContainer || this.rememberScale === "contain") {
-        if (slide.scale === "contain") {
-          newScale = "natural"
+      if (slide.biggerThanContainer || this.rememberScale === 'contain') {
+        if (slide.scale === 'contain') {
+          newScale = 'natural'
         } else {
-          newScale = "contain";
+          newScale = 'contain'
         }
       } else {
-        newScale = "natural";
+        newScale = 'natural'
       }
 
-      if (slide.scale === newScale) return;
+      if (slide.scale === newScale) return
       slide.scale = newScale
 
       if (slide === this.currentSlide) {
-          slide.mediaElm.classList.add('animateZoom')
-          this.positionLoadedSlide(slide)
-          this.scale = newScale
-          this.positionAllLoadedSlides();
+        slide.mediaElm.classList.add('animateZoom')
+        this.positionLoadedSlide(slide)
+        this.scale = newScale
+        this.positionAllLoadedSlides()
       } else {
-          this.positionLoadedSlide(slide)
+        this.positionLoadedSlide(slide)
       }
     },
-    /** 
+    /**
      * Toggle between the different zoom levels
      */
-    getInitialScale(slide, ignoreRememberScale) {
+    getInitialScale (slide, ignoreRememberScale) {
       if (this.rememberScale && !ignoreRememberScale && (this.rememberScale === this.scale || this.rememberScale === true)) {
         return this.scale
       }
       if (slide.biggerThanContainer) {
-        return "contain";
+        return 'contain'
       }
-      return "natural";
+      return 'natural'
     },
-    /** 
+    /**
      * Check if the slide media would be larger than the slide container if the
      * media were rendered at it's normal size. Returns true if larger, false if
      * not, or null if sizes can not be deduced.
      */
-    naturalSlideSizeBiggerThanContainer(slide) {
-      const {container: containerSize, media: mediaSize} = this.getSlideDimensions(slide)
+    naturalSlideSizeBiggerThanContainer (slide) {
+      const { container: containerSize, media: mediaSize } = this.getSlideDimensions(slide)
 
       if (mediaSize.height < containerSize.height && mediaSize.width < containerSize.width) {
-        return false;
+        return false
       }
-      return true;
+      return true
     },
-    getSlideDimensions(slide) {
+    getSlideDimensions (slide) {
       const dimensions = {
         container: {
           height: this.$el.clientHeight,
-          width: this.$el.clientWidth,
+          width: this.$el.clientWidth
         },
         media: {
           height: slide.data.height || slide.mediaHeight,
@@ -360,22 +364,22 @@ export default {
       }
       return dimensions
     },
-    /** 
+    /**
      * Handler for a key down event.
      */
-    keyDownListener(event) {
+    keyDownListener (event) {
       if (event.key === 'ArrowLeft') {
-        this.previousSlide();
+        this.previousSlide()
       } else if (event.key === 'ArrowRight') {
-        this.nextSlide();
+        this.nextSlide()
       } else if (event.key === 'Escape') {
-        this.closeSlideShow();
+        this.closeSlideShow()
       }
     },
-    /** 
+    /**
      * Handler for window resize
      */
-    resizeWindowListener() {
+    resizeWindowListener () {
       // Current zoom level may no longer be valid so try re-applying
       // this.setZoomLevel(this.zoomLevel);
       for (const slide of this.loadedSlides) {
@@ -385,11 +389,11 @@ export default {
           slide.scale = this.getInitialScale(slide, true)
         }
       }
-      this.positionLoadedSlide(this.currentSlide);
-      this.positionAllLoadedSlides();
-    },
-  },
-};
+      this.positionLoadedSlide(this.currentSlide)
+      this.positionAllLoadedSlides()
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -462,7 +466,6 @@ export default {
 
       &:hover span {
         transform: translateY(-3px) translateX(10px);
-
       }
 
       &.show {
