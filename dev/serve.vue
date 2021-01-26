@@ -24,7 +24,7 @@ export default Vue.extend({
 
 <template>
   <div id="app">
-    <big-shot v-if="showSlideShow" :slideData="slideData" @exited="() => showSlideShow = false" rememberScale="contain" />
+    <big-shot v-if="showSlideShow" :slideData="slideData" @exited="() => showSlideShow = false" />
     <button @click="() => showSlideShow = true">Open Slide Show</button>
   </div>
 </template>

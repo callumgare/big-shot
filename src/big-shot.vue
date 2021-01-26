@@ -199,6 +199,12 @@ export default {
 
       // eslint-disable-next-line no-param-reassign
       slide.mediaElm.style.display = ''
+
+      slide.mediaElm.classList.remove('zoom-in')
+      slide.mediaElm.classList.remove('zoom-out')
+      if (this.nextToggledScaleModeZoomDirection(slide)) {
+        slide.mediaElm.classList.add('zoom-' + this.nextToggledScaleModeZoomDirection(slide))
+      }
     },
     /**
      * Positions the DOM media elements of each slide currently loaded into the
@@ -294,16 +300,7 @@ export default {
      * Toggle between the different zoom levels
      */
     toggleScaleMode (slide) {
-      let newScale
-      if (slide.biggerThanContainer || this.rememberScale === 'contain') {
-        if (slide.scale === 'contain') {
-          newScale = 'natural'
-        } else {
-          newScale = 'contain'
-        }
-      } else {
-        newScale = 'natural'
-      }
+      const newScale = this.nextToggledScaleMode(slide)
 
       if (slide.scale === newScale) return
       slide.scale = newScale
@@ -315,6 +312,35 @@ export default {
         this.positionAllLoadedSlides()
       } else {
         this.positionLoadedSlide(slide)
+      }
+    },
+    nextToggledScaleMode (slide) {
+      if (slide.biggerThanContainer || this.rememberScale === 'contain') {
+        if (slide.scale === 'contain') {
+          return 'natural'
+        } else {
+          return 'contain'
+        }
+      } else {
+        return 'natural'
+      }
+    },
+    nextToggledScaleModeZoomDirection (slide) {
+      if (slide.scale === this.nextToggledScaleMode(slide)) {
+        return null
+      }
+      if (slide.scale === 'contain' && this.nextToggledScaleMode(slide) === 'natural') {
+        if (slide.biggerThanContainer) {
+          return 'in'
+        } else {
+          return 'out'
+        }
+      } else if (slide.scale === 'natural' && this.nextToggledScaleMode(slide) === 'contain') {
+        if (slide.biggerThanContainer) {
+          return 'out'
+        } else {
+          return 'in'
+        }
       }
     },
     /**
@@ -482,6 +508,14 @@ export default {
     .media {
       &.animateZoom {
         transition: transform 0.2s;
+      }
+
+      &.zoom-in {
+        cursor: zoom-in;
+      }
+
+      &.zoom-out {
+        cursor: zoom-out;
       }
     }
 
