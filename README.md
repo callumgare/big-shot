@@ -6,15 +6,14 @@ Big Shot is a image and video full screen slide show Vue component.  It’s basi
 ## 🎪 Demo
 **Check out the [live demo](https://big-shot-demo.glitch.me/).**
 
-
 ## ⚠️ Software Quality and Features
 **Big Shot is very much in alpha.** No assurances are given, there are no tests yet and there could potentially be breaking changes in the future. So don’t use big shot in a situation when stability is very important.
 
-While I intend to improve Big Shot over time I have limited capacity so I will probably focus on either features that I’ll use or improve general stability. Pull requests are encuraged if you would like to contribute. Although unless you're not concerned if a change is not accepted please create an issue before you write any code because I would like to add features in a conscious and thoughtful way.
+While I intend to improve Big Shot over time I have limited capacity so I will probably focus on either features that I’ll use or improve general stability. Pull requests are encouraged if you would like to contribute. Although unless you're not concerned if a change is not accepted please create an issue before you write any code because I would like to add features in a conscious and thoughtful way.
 
 ### Things It Does
 - Supports image and video
-- Has the same zoom behaviour as photoswipe (minus panning)
+- Has the same zoom behaviour as PhotoSwipe (minus panning)
 - minimal and elegant UI
 
 ### Things It Does Not Do (Yet?)
@@ -43,7 +42,7 @@ import BigShot from 'big-shot'
 
 export default Vue.extend({
   name: 'MyComponent',
-  components: {BigShot},
+  components: { BigShot },
   data () {
     return {
       slideData: [
@@ -62,13 +61,13 @@ export default Vue.extend({
 In your template add:
 ```html
 <big-shot
-    v-if="showSlideShow"
-    :slideData="slideData"
-    @exited="() => showSlideShow = false"
+  v-if="showSlideShow"
+  :slideData="slideData"
+  @exited="() => showSlideShow = false"
 />
 ```
 
-Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see see how it can easily be embeded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
+Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
 
 
 ## ✨ Motivation
