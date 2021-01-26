@@ -546,7 +546,7 @@ export default {
 
     .icon {
     vertical-align: -0.2em;
-      path {
+      &::v-deep path {
         fill: #fff;
       }
     }

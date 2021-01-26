@@ -1,5 +1,3 @@
-// rollup.config.js
-import fs from 'fs';
 import path from 'path';
 import vue from 'rollup-plugin-vue';
 import alias from '@rollup/plugin-alias';
@@ -8,12 +6,7 @@ import replace from '@rollup/plugin-replace';
 import babel from 'rollup-plugin-babel';
 import svg from 'rollup-plugin-vue-inline-svg';
 import minimist from 'minimist';
-
-// Get browserslist config and remove ie from es build targets
-const esbrowserslist = fs.readFileSync('./config/.browserslistrc')
-  .toString()
-  .split('\n')
-  .filter((entry) => entry && entry.substring(0, 2) !== 'ie');
+import { terser } from 'rollup-plugin-terser';
 
 const argv = minimist(process.argv.slice(2));
 
@@ -88,7 +81,9 @@ if (!argv.format || argv.format === 'es') {
           [
             '@babel/preset-env',
             {
-              targets: esbrowserslist,
+              targets: {
+                "esmodules": true
+              }
             },
           ],
         ],
@@ -134,7 +129,7 @@ if (!argv.format || argv.format === 'iife') {
     ...baseConfig,
     external,
     output: {
-      // compact: true,
+      compact: true,
       file: 'dist/big-shot.min.js',
       format: 'iife',
       name: 'BigShot',
@@ -148,11 +143,11 @@ if (!argv.format || argv.format === 'iife') {
       vue(baseConfig.plugins.vue),
       babel(baseConfig.plugins.babel),
       commonjs(),
-      // terser({
-      //   output: {
-      //     ecma: 5,
-      //   },
-      // }),
+      terser({
+        output: {
+          ecma: 5,
+        },
+      }),
     ],
   };
   buildFormats.push(unpkgConfig);
