@@ -32,7 +32,7 @@
       </template>
     </div>
     <div class="loopIndicator">
-      <span class="icon">⟳</span>
+      <RepeatIcon class="icon" />
     </div>
     <div class="bottombar">
     </div>
@@ -40,9 +40,12 @@
 </template>
 
 <script>
+import RepeatIcon from './assets/icons/repeat.svg'
+
 export default {
   name: 'BigShot',
   props: ['slideData', 'rememberScale'],
+  components: { RepeatIcon },
   data () {
     return {
       currentSlideIndex: this.slideData?.length > 0 ? 0 : -1,
@@ -500,22 +503,32 @@ export default {
     border: none;
     font-size: 70px;
     color: #fff;
-    border-radius: 20px;
     line-height: 100px;
     text-align: center;
-    opacity: 1;
     visibility: hidden;
+    transform: scale(0.3);
+    pointer-events: none;
+    opacity: 0.8;
 
-    span {
-      display: inline-block;
+    .icon {
+    vertical-align: -0.2em;
+      path {
+        fill: #fff;
+      }
     }
 
     &.animate {
       visibility: visible;
-      transform: scale(1.5);
+      transform: scale(1);
       opacity: 0;
-      transition: transform 1s, opacity 2s 1s;
+      transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
     }
+  }
+
+  .icon {
+    display: inline-block;
+    height: 1em;
+    width: 1em;
   }
 }
 </style>

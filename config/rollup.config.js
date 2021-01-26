@@ -6,7 +6,7 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import babel from 'rollup-plugin-babel';
-import { terser } from 'rollup-plugin-terser';
+import svg from 'rollup-plugin-vue-inline-svg';
 import minimist from 'minimist';
 
 // Get browserslist config and remove ie from es build targets
@@ -75,6 +75,7 @@ if (!argv.format || argv.format === 'es') {
       exports: 'named',
     },
     plugins: [
+      svg(),
       replace({
         ...baseConfig.plugins.replace,
         'process.env.ES_BUILD': JSON.stringify('true'),
@@ -111,6 +112,7 @@ if (!argv.format || argv.format === 'cjs') {
       globals,
     },
     plugins: [
+      svg(),
       replace(baseConfig.plugins.replace),
       ...baseConfig.plugins.preVue,
       vue({
@@ -140,6 +142,7 @@ if (!argv.format || argv.format === 'iife') {
       globals,
     },
     plugins: [
+      svg(),
       replace(baseConfig.plugins.replace),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
