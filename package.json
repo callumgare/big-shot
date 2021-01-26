@@ -20,8 +20,8 @@
     "lint-fix": "concurrently npm:lint-fix:*",
     "lint:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}'",
     "lint-fix:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}' --fix",
-    "lint:eslint": "eslint -c config/.eslintrc.js --no-eslintrc src/ dev/",
-    "lint-fix:eslint": "eslint -c config/.eslintrc.js --no-eslintrc --fix src/ dev/"
+    "lint:eslint": "eslint --ext .vue,.js src/ dev/",
+    "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/"
   },
   "dependencies": {
     "@vue/compiler-sfc": "^3.0.5",
