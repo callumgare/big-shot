@@ -14,16 +14,17 @@ While I intend to improve Big Shot over time I have limited capacity so I will p
 ### Things It Does
 - Supports image and video
 - Has the same zoom behaviour as PhotoSwipe (minus panning)
-- minimal and elegant UI
+- Minimal and elegant UI
 
 ### Things It Does Not Do (Yet?)
-- Mobile swipe input for swapping between slides
+- Mobile swipe input for swapping between slides (**this means it effectively does not work on mobile yet**)
 - Panning zoomed media
 - Timer for automatic slide progression
 - Captions/displaying other metadata 
 - Events for slide changes
 - HTML slides
 - Rotation
+- Next/previous slide buttons
 
 Unless you’re happy with how Big Shot functions at the moment I would recommend one of the other PhotoSwipe Vue implementations such as:
 - [vue-picture-swipe](https://www.npmjs.com/package/vue-picture-swipe) (whose readme also includes a good summary of other PhotoSwipe implementations for Vue).
@@ -67,7 +68,7 @@ In your template add:
 />
 ```
 
-Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
+Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
 
 
 ## ✨ Motivation

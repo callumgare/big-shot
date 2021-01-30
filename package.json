@@ -1,32 +1,28 @@
 {
   "name": "big-shot",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Vue-based image/video slide show widget",
   "author": "Callum Gare <callum@gare.com.au>",
-  "repository": "github:callumgare/big-shot",
-  "keywords": ["slide-show", "slide show", "slideshow", "vue", "photoswipe"],
-  "licence": "MIT",
+  "scripts": {
+    "serve": "vue-cli-service serve dev/serve.js",
+    "build": "cross-env NODE_ENV=production rollup --config config/rollup.config.js",
+    "build:es": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format es",
+    "build:ssr": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format cjs",
+    "build:unpkg": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format iife",
+    "lint": "concurrently npm:lint:*",
+    "lint:eslint": "eslint --ext .vue,.js src/ dev/",
+    "lint:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}'",
+    "lint-fix": "concurrently npm:lint-fix:*",
+    "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/",
+    "lint-fix:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}' --fix"
+  },
   "main": "dist/big-shot.ssr.js",
-  "browser": "dist/big-shot.esm.js",
   "module": "dist/big-shot.esm.js",
+  "browser": "dist/big-shot.esm.js",
   "unpkg": "dist/big-shot.min.js",
   "files": [
     "dist/*"
   ],
-  "scripts": {
-    "serve": "vue-cli-service serve dev/serve.js",
-    "build": "cross-env NODE_ENV=production rollup --config config/rollup.config.js",
-    "build:ssr": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format cjs",
-    "build:es": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format es",
-    "build:unpkg": "cross-env NODE_ENV=production rollup --config config/rollup.config.js --format iife",
-    "lint": "concurrently npm:lint:*",
-    "lint-fix": "concurrently npm:lint-fix:*",
-    "lint:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}'",
-    "lint-fix:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}' --fix",
-    "lint:eslint": "eslint --ext .vue,.js src/ dev/",
-    "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/"
-  },
-  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
@@ -46,26 +42,42 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
-    "eslint-plugin-vue": "^6.2.2",
+    "eslint-plugin-vue": "^7.0.0-alpha.0",
     "minimist": "^1.2.5",
+    "postcss": "^8.2.4",
     "rollup": "^2.7.3",
     "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-postcss": "^4.0.0",
+    "rollup-plugin-scss": "^2.6.1",
+    "rollup-plugin-svg-to-vue": "^1.0.0",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-vue": "^5.1.6",
-    "rollup-plugin-vue-inline-svg": "^1.1.1",
+    "rollup-plugin-vue": "^6.0.0-beta.10",
     "sass-loader": "^10.1.1",
     "stylelint": "^13.9.0",
     "stylelint-config-standard": "^20.0.0",
     "stylelint-scss": "^3.18.0",
     "stylelint-webpack-plugin": "^2.1.1",
-    "vue": "^2.6.11",
-    "vue-svg-loader": "^0.16.0",
-    "vue-template-compiler": "^2.6.11"
+    "vue": "^3.0.0-beta.1",
+    "vue-svg-loader": "^0.17.0-beta.2"
   },
   "peerDependencies": {
     "vue": "^2.6.11"
   },
   "engines": {
     "node": ">=10"
+  },
+  "keywords": [
+    "slide-show",
+    "slide show",
+    "slideshow",
+    "vue",
+    "photoswipe"
+  ],
+  "license": "MIT",
+  "repository": "github:callumgare/big-shot",
+  "dependencies": {
+    "sass": "^1.32.5",
+    "vue-loader": "^15.9.6",
+    "vue-loader-v16": "^16.0.0-beta.5.4"
   }
 }

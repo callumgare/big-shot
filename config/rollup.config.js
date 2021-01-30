@@ -4,7 +4,8 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import babel from 'rollup-plugin-babel';
-import svg from 'rollup-plugin-vue-inline-svg';
+import svgToVue from 'rollup-plugin-svg-to-vue';
+import postcss from 'rollup-plugin-postcss'; // v4.0.0
 import minimist from 'minimist';
 import { terser } from 'rollup-plugin-terser';
 
@@ -16,6 +17,7 @@ const baseConfig = {
   input: 'src/entry.js',
   plugins: {
     preVue: [
+      svgToVue(),
       alias({
         resolve: ['.js', '.jsx', '.ts', '.tsx', '.vue'],
         entries: {
@@ -28,7 +30,8 @@ const baseConfig = {
       'process.env.ES_BUILD': JSON.stringify('false'),
     },
     vue: {
-      css: true,
+      
+      preprocessStyles: true,
       template: {
         isProduction: true,
       },
@@ -68,7 +71,6 @@ if (!argv.format || argv.format === 'es') {
       exports: 'named',
     },
     plugins: [
-      svg(),
       replace({
         ...baseConfig.plugins.replace,
         'process.env.ES_BUILD': JSON.stringify('true'),
@@ -89,6 +91,7 @@ if (!argv.format || argv.format === 'es') {
         ],
       }),
       commonjs(),
+      postcss(),
     ],
   };
   buildFormats.push(esConfig);
@@ -107,7 +110,6 @@ if (!argv.format || argv.format === 'cjs') {
       globals,
     },
     plugins: [
-      svg(),
       replace(baseConfig.plugins.replace),
       ...baseConfig.plugins.preVue,
       vue({
@@ -119,6 +121,7 @@ if (!argv.format || argv.format === 'cjs') {
       }),
       babel(baseConfig.plugins.babel),
       commonjs(),
+      postcss(),
     ],
   };
   buildFormats.push(umdConfig);
@@ -137,12 +140,12 @@ if (!argv.format || argv.format === 'iife') {
       globals,
     },
     plugins: [
-      svg(),
       replace(baseConfig.plugins.replace),
       ...baseConfig.plugins.preVue,
       vue(baseConfig.plugins.vue),
       babel(baseConfig.plugins.babel),
       commonjs(),
+      postcss(),
       terser({
         output: {
           ecma: 5,

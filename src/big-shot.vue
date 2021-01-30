@@ -137,10 +137,7 @@ export default {
       for (const slide of this.slides) {
         if (slide.elm) continue
         // eslint-disable-line
-        slide.elm = (
-          this.$refs[`slide-${slide.index}`] &&
-          this.$refs[`slide-${slide.index}`][0]
-        ) || null
+        slide.elm = this.$refs[`slide-${slide.index}`] || null
         slide.mediaElm = slide.elm
           ? slide.elm.querySelector('.media')
           : null
@@ -545,8 +542,9 @@ export default {
     opacity: 0.8;
 
     .icon {
-    vertical-align: -0.2em;
-      &::v-deep path {
+      vertical-align: -0.2em;
+
+      &:deep(path) {
         fill: #fff;
       }
     }

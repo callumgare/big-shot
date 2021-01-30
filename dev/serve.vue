@@ -1,25 +1,24 @@
 <script>
-import Vue from 'vue';
-import BigShot from '@/big-shot.vue';
+import BigShot from '@/big-shot.vue'
 
-export default Vue.extend({
+export default {
   name: 'ServeDev',
   components: {
     BigShot
   },
-  data() {
+  data () {
     return {
       slideData: [
-        {src: 'media/factory.jpg'},
-        {src: 'media/sunset.jpg'},
-        {src: 'media/santa.mp4', type: 'video'},
-        {src: 'media/tree.jpg'},
-        {src: 'media/tunnels.jpg'},
+        { src: 'media/factory.jpg' },
+        { src: 'media/sunset.jpg' },
+        { src: 'media/santa.mp4', type: 'video' },
+        { src: 'media/tree.jpg' },
+        { src: 'media/tunnels.jpg' }
       ],
-      showSlideShow: true,
+      showSlideShow: true
     }
   }
-});
+}
 </script>
 
 <template>
