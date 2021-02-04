@@ -11,7 +11,13 @@
     <div
       v-for="slide in loadedSlides"
       :key="slide.index"
-      :class="['slide', {'current': slide.index === currentSlideIndex}]"
+      :class="[
+        'slide',
+        {
+          'current': slide.index === currentSlideIndex,
+          'sizeKnown': slide.mediaHeight && slide.mediaWidth
+        },
+      ]"
       :ref="`slide-${slide.index}`"
       :data-slide-index="slide.index"
     >
@@ -93,7 +99,11 @@ export default {
         if (!this.slidesMap.has(data)) {
           this.slidesMap.set(data, {
             data,
-            type: data?.type || 'image'
+            type: data?.type || 'image',
+            mediaHeight: undefined,
+            mediaWidth: undefined,
+            biggerThanContainer: undefined,
+            scale: undefined
           })
         }
         const slide = this.slidesMap.get(data)
@@ -148,7 +158,7 @@ export default {
      * positioned correctly etc.
      */
     setupLoadedSlides () {
-      for (const slide of this.slides) {
+      for (const slide of this.loadedSlides) {
         if (slide.elm) continue
         // eslint-disable-line
         slide.elm = (
@@ -219,6 +229,7 @@ export default {
       slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth
       slide.biggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
       slide.scale = this.getInitialScale(slide)
+      this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
     },
     /**
      * Prepares for close and emits close event.
@@ -461,7 +472,7 @@ export default {
       }
     }
 
-    &:not(.current) {
+    &:not(.current), &:not(.sizeKnown) {
       display: none;
     }
   }
