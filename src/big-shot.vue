@@ -300,13 +300,19 @@ export default {
       }
 
       return this.changeCurrentSlideTo(
-        this.wrapIndex(newIndexWithoutWrap)
+        this.wrapIndex(newIndexWithoutWrap),
+        delta
       )
     },
     /**
      * Go to the given slide
      */
-    changeCurrentSlideTo (newCurrentSlideIndex) {
+    changeCurrentSlideTo (newCurrentSlideIndex, delta) {
+      this.$emit('slideChanged', {
+        newIndex: newCurrentSlideIndex,
+        oldIndex: this.currentSlideIndex,
+        delta: delta || newCurrentSlideIndex - this.currentSlideIndex
+      })
       this.currentSlide.mediaElm?.pause?.()
       this.currentSlideIndex = newCurrentSlideIndex
       this.playVideo(this.currentSlide)
