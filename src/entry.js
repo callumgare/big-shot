@@ -1,9 +1,12 @@
+import VueCompositionApi from '@vue/composition-api'
+
 import component from '@/big-shot.vue'
 
 // install function executed by Vue.use()
 const install = function installBigShot (Vue) {
   if (install.installed) return
   install.installed = true
+  Vue.use(VueCompositionApi)
   Vue.component('BigShot', component)
 }
 
