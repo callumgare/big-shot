@@ -7,7 +7,6 @@ import babel from 'rollup-plugin-babel';
 import svg from 'rollup-plugin-vue-inline-svg';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import minimist from 'minimist';
-import { terser } from 'rollup-plugin-terser';
 
 const argv = minimist(process.argv.slice(2));
 
@@ -131,7 +130,6 @@ if (!argv.format || argv.format === 'iife') {
     ...baseConfig,
     external,
     output: {
-      compact: true,
       file: 'dist/big-shot.min.js',
       format: 'iife',
       name: 'BigShot',
@@ -145,11 +143,6 @@ if (!argv.format || argv.format === 'iife') {
       vue(baseConfig.plugins.vue),
       babel(baseConfig.plugins.babel),
       commonjs(),
-      terser({
-        output: {
-          ecma: 5,
-        },
-      }),
     ],
   };
   buildFormats.push(unpkgConfig);
