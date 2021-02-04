@@ -1,6 +1,6 @@
 {
   "name": "big-shot",
-  "version": "0.1.1",
+  "version": "0.2.1",
   "description": "A Vue-based image/video slide show widget",
   "author": "Callum Gare <callum@gare.com.au>",
   "repository": "github:callumgare/big-shot",
@@ -30,7 +30,8 @@
     "lint:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}'",
     "lint-fix:stylelint": "stylelint --config config/stylelint.config.js  'src/*.{vue,scss}' --fix",
     "lint:eslint": "eslint --ext .vue,.js src/ dev/",
-    "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/"
+    "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {},
   "devDependencies": {
