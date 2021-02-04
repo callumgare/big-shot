@@ -15,10 +15,10 @@
         'slide',
         {
           'current': slide.index === currentSlideIndex,
-          'sizeKnown': slide.mediaHeight && slide.mediaWidth
+          'positioned': slide.positioned
         },
       ]"
-      :ref="`slide-${slide.index}`"
+      :ref="`slide`"
       :data-slide-index="slide.index"
     >
       <img
@@ -56,12 +56,14 @@ export default {
   setup (props) {
     const {
       positionLoadedSlide,
+      getPositionForLoadedSlide,
       getSlideDimensions,
       naturalSlideSizeBiggerThanContainer
     } = useSlidePositioning()
 
     return {
       positionLoadedSlide,
+      getPositionForLoadedSlide,
       getSlideDimensions,
       naturalSlideSizeBiggerThanContainer
     }
@@ -87,7 +89,7 @@ export default {
       loopIndicator.classList.remove('animate')
     })
 
-    this.$nextTick(this.setupLoadedSlides)
+    this.setupLoadedSlides()
   },
   updated () {
     this.$nextTick(this.setupLoadedSlides)
@@ -137,6 +139,12 @@ export default {
 
       return loadedSlides
     },
+    notLoadedSlides () {
+      return this.slides
+        .filter(
+          slide => !this.loadedSlides.some(loadedSlide => loadedSlide === slide)
+        )
+    },
     numOfSlides () {
       return this.slideData?.length || 0
     }
@@ -159,17 +167,45 @@ export default {
      */
     setupLoadedSlides () {
       for (const slide of this.loadedSlides) {
-        if (slide.elm) continue
-        // eslint-disable-line
-        slide.elm = (
-          this.$refs[`slide-${slide.index}`] &&
-          this.$refs[`slide-${slide.index}`][0]
-        ) || null
+        if (slide.elm) {
+          continue
+        }
+        slide.elm = this.$refs.slide.find(
+          slideElm => slideElm.dataset.slideIndex === slide.index.toString()
+        )
+        if (!slide.elm) {
+          throw new Error('Something went wrong. Can\'t access slide element.')
+        }
         slide.mediaElm = slide.elm
           ? slide.elm.querySelector('.media')
           : null
 
-        slide.mediaElm.addEventListener('click', () => {
+        if (!slide.mediaElm) {
+          throw new Error('Something went wrong. Can\'t access media element.')
+        }
+
+        const processLoadedMedia = () => {
+          // Check that slide hasn't been unloaded in the mean time
+          if (!slide.elm) {
+            return
+          }
+          this.saveMediaMetadata(slide)
+          this.positionLoadedSlide(slide, this.getInitialScale(slide))
+        }
+        if (slide.mediaHeight && slide.mediaWidth) {
+          this.positionLoadedSlide(slide, this.getInitialScale(slide))
+        } else if (slide.mediaElm.completed) {
+          processLoadedMedia()
+        } else {
+          // Used by images
+          slide.mediaElm.addEventListener('load', processLoadedMedia)
+          // Used by videos
+          slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
+        }
+
+        slide.mediaElm.addEventListener('click', (event) => {
+          console.count('toggle size')
+          console.log(event.target, event.timeStamp)
           this.toggleScaleMode(this.currentSlide)
         })
         slide.mediaElm.addEventListener('play', () => {
@@ -182,18 +218,6 @@ export default {
         slide.mediaElm.addEventListener('transitionend', () => {
           slide.mediaElm.classList.remove('animateZoom')
         })
-        const processLoadedMedia = () => {
-          this.saveMediaMetadata(slide)
-          this.positionLoadedSlide(slide, this.getInitialScale(slide))
-        }
-        if (slide.mediaElm.completed) {
-          processLoadedMedia()
-        } else {
-          // Used by images
-          slide.mediaElm.addEventListener('load', processLoadedMedia)
-          // Used by videos
-          slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
-        }
       };
     },
     /**
@@ -374,6 +398,15 @@ export default {
       this.positionLoadedSlide(this.currentSlide)
       this.positionAllLoadedSlides()
     }
+  },
+  watch: {
+    notLoadedSlides () {
+      for (const slide of this.notLoadedSlides) {
+        slide.elm = null
+        slide.mediaElm = null
+        slide.positioned = false
+      }
+    }
   }
 }
 </script>
@@ -472,7 +505,8 @@ export default {
       }
     }
 
-    &:not(.current), &:not(.sizeKnown) {
+    &:not(.current),
+    &:not(.positioned) {
       display: none;
     }
   }

@@ -6,6 +6,22 @@ export default function useSlidePositioning (user) {
   * and the current zoom level.
   */
   function positionLoadedSlide (slide) {
+    const transformFunctions = this.getPositionForLoadedSlide(slide)
+
+    // eslint-disable-next-line no-param-reassign
+    slide.mediaElm.style.transform = transformFunctions.join(' ')
+
+    slide.elm.classList.add('positioned')
+    slide.positioned = true
+
+    slide.mediaElm.classList.remove('zoom-in')
+    slide.mediaElm.classList.remove('zoom-out')
+    if (this.nextToggledScaleModeZoomDirection(slide)) {
+      slide.mediaElm.classList.add('zoom-' + this.nextToggledScaleModeZoomDirection(slide))
+    }
+  }
+
+  function getPositionForLoadedSlide (slide) {
     const { container: containerSize, media: mediaSize } = this.getSlideDimensions(slide)
     const translateHeight = (containerSize.height / 2) - (mediaSize.height / 2)
     const translateWidth = (containerSize.width / 2) - (mediaSize.width / 2)
@@ -22,17 +38,7 @@ export default function useSlidePositioning (user) {
       transformFunctions.push(`scale(${scale})`)
     }
 
-    // eslint-disable-next-line no-param-reassign
-    slide.mediaElm.style.transform = transformFunctions.join(' ')
-
-    // eslint-disable-next-line no-param-reassign
-    slide.mediaElm.style.display = ''
-
-    slide.mediaElm.classList.remove('zoom-in')
-    slide.mediaElm.classList.remove('zoom-out')
-    if (this.nextToggledScaleModeZoomDirection(slide)) {
-      slide.mediaElm.classList.add('zoom-' + this.nextToggledScaleModeZoomDirection(slide))
-    }
+    return transformFunctions
   }
 
   function getSlideDimensions (slide) {
@@ -77,6 +83,7 @@ export default function useSlidePositioning (user) {
 
   return {
     positionLoadedSlide,
+    getPositionForLoadedSlide,
     getSlideDimensions,
     naturalSlideSizeBiggerThanContainer
   }
