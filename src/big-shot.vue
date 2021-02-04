@@ -201,7 +201,7 @@ export default {
      * DOM.
      */
     positionAllLoadedSlides () {
-      for (const slide of this.slides) {
+      for (const slide of this.loadedSlides) {
         if (slide !== this.currentSlide) {
           slide.scale = this.getInitialScale(slide)
         }

@@ -67,6 +67,19 @@ In your template add:
 />
 ```
 
+**Important:** BigShot uses the Vue 2 backport of the composition API. Therefore it must be installed in the global vue instance for Big Shot to work. (Note step this is not needed if you are using Vue directly in the browser without compiling.)
+
+First add the package:
+```bash
+npm install @vue/composition-api
+```
+
+Then the file which you initialise your app you must include:
+```javascript
+import VueCompositionApi from '@vue/composition-api';
+Vue.use(VueCompositionApi);
+```
+
 Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
 
 
