@@ -8,17 +8,12 @@ export default function useSlidePositioning (user) {
   function positionLoadedSlide (slide) {
     const transformFunctions = this.getPositionForLoadedSlide(slide)
 
-    // eslint-disable-next-line no-param-reassign
-    slide.mediaElm.style.transform = transformFunctions.join(' ')
-
-    slide.elm.classList.add('positioned')
-    slide.positioned = true
-
-    slide.mediaElm.classList.remove('zoom-in')
-    slide.mediaElm.classList.remove('zoom-out')
-    if (this.nextToggledScaleModeZoomDirection(slide)) {
-      slide.mediaElm.classList.add('zoom-' + this.nextToggledScaleModeZoomDirection(slide))
+    slide.elmStyle = {
+      ...slide.elmStyle,
+      ...{ transform: transformFunctions.join(' ') }
     }
+
+    this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
   }
 
   function getPositionForLoadedSlide (slide) {
@@ -59,6 +54,7 @@ export default function useSlidePositioning (user) {
       throw new Error('Could not get container width')
     }
     if (!dimensions.media.height) {
+      console.warn(slide)
       throw new Error('Could not get media height')
     }
     if (!dimensions.media.width) {

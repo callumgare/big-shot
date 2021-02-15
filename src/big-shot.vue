@@ -15,8 +15,10 @@
         'slide',
         {
           'current': slide.index === currentSlideIndex,
-          'positioned': slide.positioned
+          'positioned': slide.elmStyle && slide.elmStyle.transform
         },
+        nextToggledScaleModeZoomDirection(slide) && `zoom-${nextToggledScaleModeZoomDirection(slide)}`,
+        slide.elmClasses
       ]"
       :ref="`slide`"
       :data-slide-index="slide.index"
@@ -25,10 +27,12 @@
         v-if="slide.type === 'image'"
         :src="slide.data.src"
         class="media"
+        :style="slide.elmStyle"
       />
       <template v-else-if="slide.type === 'video'">
         <video
           class="media"
+          :style="slide.elmStyle"
         >
           <source :src="slide.data.src" />
         </video>
@@ -90,9 +94,6 @@ export default {
     })
 
     this.setupLoadedSlides()
-  },
-  updated () {
-    this.$nextTick(this.setupLoadedSlides)
   },
   computed: {
     slides () {
@@ -184,24 +185,9 @@ export default {
           throw new Error('Something went wrong. Can\'t access media element.')
         }
 
-        const processLoadedMedia = () => {
-          // Check that slide hasn't been unloaded in the mean time
-          if (!slide.elm) {
-            return
-          }
-          this.saveMediaMetadata(slide)
+        this.executeOnceMediaDimensionsKnown(slide, () => {
           this.positionLoadedSlide(slide, this.getInitialScale(slide))
-        }
-        if (slide.mediaHeight && slide.mediaWidth) {
-          this.positionLoadedSlide(slide, this.getInitialScale(slide))
-        } else if (slide.mediaElm.completed) {
-          processLoadedMedia()
-        } else {
-          // Used by images
-          slide.mediaElm.addEventListener('load', processLoadedMedia)
-          // Used by videos
-          slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
-        }
+        })
 
         slide.mediaElm.addEventListener('click', (event) => {
           console.count('toggle size')
@@ -216,7 +202,12 @@ export default {
         })
         // Remove class for smothing sizing change after animation has finished
         slide.mediaElm.addEventListener('transitionend', () => {
-          slide.mediaElm.classList.remove('animateZoom')
+          if (slide.elmClasses) {
+            slide.elmClasses = slide.elmClasses
+              .filter(classText => classText !== 'animateZoom')
+
+            this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+          }
         })
       };
     },
@@ -229,7 +220,7 @@ export default {
         if (slide !== this.currentSlide) {
           slide.scale = this.getInitialScale(slide)
         }
-        this.positionLoadedSlide(slide)
+        this.executeOnceMediaDimensionsKnown(slide, () => this.positionLoadedSlide(slide))
       }
     },
     /**
@@ -327,7 +318,11 @@ export default {
       slide.scale = newScale
 
       if (slide === this.currentSlide) {
-        slide.mediaElm.classList.add('animateZoom')
+        slide.elmClasses = [
+          ...(slide.elmClasses || []),
+          'animateZoom'
+        ]
+        this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
         this.positionLoadedSlide(slide)
         this.scale = newScale
         this.positionAllLoadedSlides()
@@ -403,14 +398,42 @@ export default {
       }
       this.positionLoadedSlide(this.currentSlide)
       this.positionAllLoadedSlides()
+    },
+    executeOnceMediaDimensionsKnown (slide, callback) {
+      const processLoadedMedia = () => {
+        // Check that slide hasn't been unloaded in the mean time
+        if (!slide.elm || !document.body.contains(slide.elm)) {
+          return
+        }
+        this.saveMediaMetadata(slide)
+        callback && callback(slide)
+      }
+      if (slide.mediaHeight && slide.mediaWidth) {
+        callback && callback(slide)
+      } else if (slide.mediaElm.complete || slide.mediaElm.readyState >= 1) {
+        processLoadedMedia()
+      } else {
+        // Used by images
+        slide.mediaElm.addEventListener('load', processLoadedMedia)
+        // Used by videos
+        slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
+      }
     }
   },
   watch: {
+    loadedSlides: {
+      deep: true,
+      handler () {
+        // Wait till after render and refs assigned
+        this.$nextTick(() => this.setupLoadedSlides())
+      }
+    },
     notLoadedSlides () {
       for (const slide of this.notLoadedSlides) {
         slide.elm = null
         slide.mediaElm = null
-        slide.positioned = false
+        slide.elmStyle = null
+        slide.elmClasses = null
       }
     }
   }
@@ -497,18 +520,16 @@ export default {
       }
     }
 
-    .media {
-      &.animateZoom {
-        transition: transform 0.2s;
-      }
+    &.animateZoom .media {
+      transition: transform 0.2s;
+    }
 
-      &.zoom-in {
-        cursor: zoom-in;
-      }
+    &.zoom-in .media {
+      cursor: zoom-in;
+    }
 
-      &.zoom-out {
-        cursor: zoom-out;
-      }
+    &.zoom-out .media {
+      cursor: zoom-out;
     }
 
     &:not(.current),
