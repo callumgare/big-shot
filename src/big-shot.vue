@@ -10,7 +10,7 @@
     </div>
     <div
       v-for="slide in loadedSlides"
-      :key="slide.index"
+      :key="slide.id"
       :class="[
         'slide',
         {
@@ -106,7 +106,8 @@ export default {
             mediaHeight: undefined,
             mediaWidth: undefined,
             biggerThanContainer: undefined,
-            scale: undefined
+            scale: undefined,
+            id: index + Math.random()
           })
         }
         const slide = this.slidesMap.get(data)
@@ -190,8 +191,6 @@ export default {
         })
 
         slide.mediaElm.addEventListener('click', (event) => {
-          console.count('toggle size')
-          console.log(event.target, event.timeStamp)
           this.toggleScaleMode(this.currentSlide)
         })
         slide.mediaElm.addEventListener('play', () => {
