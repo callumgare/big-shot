@@ -14,10 +14,10 @@ While I intend to improve Big Shot over time I have limited capacity so I will p
 ### Things It Does
 - Supports image and video
 - Has the same zoom behaviour as PhotoSwipe (minus panning)
-- minimal and elegant UI
+- Minimal and elegant UI
+- Basic next/previous slide mobile swipe gesture
 
 ### Things It Does Not Do (Yet?)
-- Mobile swipe input for swapping between slides
 - Panning zoomed media
 - Timer for automatic slide progression
 - Captions/displaying other metadata 

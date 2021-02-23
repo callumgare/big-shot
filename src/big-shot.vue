@@ -33,6 +33,7 @@
         <video
           class="media"
           :style="slide.elmStyle"
+          playsinline
         >
           <source :src="slide.data.src" />
         </video>
@@ -51,6 +52,7 @@
 
 <script>
 import useSlidePositioning from './composables/useSlidePositioning'
+import useGestures from './composables/useGestures'
 import RepeatIcon from './assets/icons/repeat.svg'
 
 export default {
@@ -64,6 +66,8 @@ export default {
       getSlideDimensions,
       naturalSlideSizeBiggerThanContainer
     } = useSlidePositioning()
+
+    useGestures()
 
     return {
       positionLoadedSlide,
@@ -409,7 +413,7 @@ export default {
       }
       if (slide.mediaHeight && slide.mediaWidth) {
         callback && callback(slide)
-      } else if (slide.mediaElm.complete || slide.mediaElm.readyState >= 1) {
+      } else if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {
         processLoadedMedia()
       } else {
         // Used by images
