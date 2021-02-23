@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue'
-import BigShotSource from '@/big-shot.vue'
+import BigShotSource from '@/entry.js'
 import BigShotDist from '../'
 
 export default Vue.extend({
