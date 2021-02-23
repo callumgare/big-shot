@@ -7,6 +7,8 @@ Vue.use(VueCompositionAPI)
 
 Vue.config.productionTip = false
 
-new Vue({
-  render: (h) => h(Dev)
+new Dev({
+  propsData: {
+    componentFrom: process.env.VUE_APP_SERVE_FROM || 'source'
+  }
 }).$mount('#app')

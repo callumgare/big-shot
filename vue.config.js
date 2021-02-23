@@ -11,4 +11,5 @@ module.exports = {
             .use('vue-svg-loader')
             .loader('vue-svg-loader')
     },
+    lintOnSave: process.env.VUE_APP_SERVE_FROM === 'dist' ? false : 'warning'
 }

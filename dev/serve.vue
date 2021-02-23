@@ -1,12 +1,15 @@
 <script>
 import Vue from 'vue'
-import BigShot from '@/big-shot.vue'
+import BigShotSource from '@/big-shot.vue'
+import BigShotDist from '../'
 
 export default Vue.extend({
   name: 'ServeDev',
   components: {
-    BigShot
+    BigShotSource,
+    BigShotDist
   },
+  props: ['componentFrom'],
   data () {
     return {
       slideData: [
@@ -24,7 +27,12 @@ export default Vue.extend({
 
 <template>
   <div id="app">
-    <big-shot v-if="showSlideShow" :slideData="slideData" @exited="() => showSlideShow = false" />
+    <component
+      :is="`big-shot-${componentFrom}`"
+      v-if="showSlideShow"
+      :slideData="slideData"
+      @exited="() => showSlideShow = false"
+    />
     <button @click="() => showSlideShow = true">Open Slide Show</button>
   </div>
 </template>
