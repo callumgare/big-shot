@@ -1,5 +1,4 @@
-
-export default function useSlidePositioning (user) {
+export default function setup () {
   /**
   * Positions on the page the media of the current slide. This involves both
   * shifting and scaling the DOM element based on the dimensions of the media
@@ -14,6 +13,19 @@ export default function useSlidePositioning (user) {
     }
 
     this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+  }
+
+  /**
+   * Positions the DOM media elements of each slide currently loaded into the
+   * DOM.
+   */
+  function positionAllLoadedSlides () {
+    for (const slide of this.loadedSlides) {
+      if (slide !== this.currentSlide) {
+        slide.scale = this.getInitialScale(slide)
+      }
+      this.executeOnceMediaDimensionsKnown(slide, () => this.positionLoadedSlide(slide))
+    }
   }
 
   function getPositionForLoadedSlide (slide) {
@@ -79,6 +91,7 @@ export default function useSlidePositioning (user) {
 
   return {
     positionLoadedSlide,
+    positionAllLoadedSlides,
     getPositionForLoadedSlide,
     getSlideDimensions,
     naturalSlideSizeBiggerThanContainer

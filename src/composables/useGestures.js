@@ -1,9 +1,7 @@
-
 import { onMounted, getCurrentInstance } from '@vue/composition-api'
-
 import HammerJS from 'hammerjs'
 
-export default function useGestures () {
+export default function setup () {
   onMounted(() => {
     const self = getCurrentInstance()
     const containerGestures = new HammerJS(self.proxy.$el, {})
