@@ -42,8 +42,11 @@
         </button>
       </template>
     </div>
-    <div class="loopIndicator">
+    <div class="loopIndicator slideOverlayIndicator">
       <RepeatIcon class="icon" />
+    </div>
+    <div class="loadingIndicator slideOverlayIndicator">
+      <SpinnerIcon class="icon" />
     </div>
     <div class="bottombar">
     </div>
@@ -57,11 +60,12 @@ import useSlidePositioning from './composables/useSlidePositioning'
 import useSlideScaling from './composables/useSlideScaling'
 import useGestures from './composables/useGestures'
 import RepeatIcon from './assets/icons/repeat.svg'
+import SpinnerIcon from './assets/icons/spinner.svg'
 
 export default {
   name: 'BigShot',
-  props: ['slideData', 'rememberScale'],
-  components: { RepeatIcon },
+  props: ['slideData', 'rememberScale', 'beforeSlideChangeHook'],
+  components: { RepeatIcon, SpinnerIcon },
   setup (props) {
     useGestures()
 
@@ -75,7 +79,7 @@ export default {
       slides,
       currentSlideIndex,
       ...loadSlidesProps,
-      ...useSlideControl(slides, currentSlideIndex),
+      ...useSlideControl(props, slides, currentSlideIndex),
       ...useSlidePositioning(),
       ...useSlideScaling()
     }
@@ -267,7 +271,7 @@ export default {
     }
   }
 
-  .loopIndicator {
+  .slideOverlayIndicator {
     left: 0;
     right: 0;
     margin: auto;
@@ -286,7 +290,9 @@ export default {
     transform: scale(0.3);
     pointer-events: none;
     opacity: 0.8;
+  }
 
+  .loopIndicator {
     .icon {
       vertical-align: -0.2em;
 
@@ -299,6 +305,23 @@ export default {
       visibility: visible;
       transform: scale(1);
       opacity: 0;
+      transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
+    }
+  }
+
+  .loadingIndicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .icon {
+      width: 70%;
+      height: 70%;
+    }
+
+    &.animate {
+      visibility: visible;
+      transform: scale(1);
       transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
     }
   }

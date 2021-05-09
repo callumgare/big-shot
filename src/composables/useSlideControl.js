@@ -1,6 +1,6 @@
 import { computed, onMounted, getCurrentInstance } from '@vue/composition-api'
 
-export default function setup (slides, currentSlideIndex) {
+export default function setup (props, slides, currentSlideIndex) {
   onMounted(() => {
     const self = getCurrentInstance()
 
@@ -29,8 +29,32 @@ export default function setup (slides, currentSlideIndex) {
   /**
    * Move forwards or back by the given number of slides
    */
-  function changeCurrentSlideBy (delta) {
-    const newIndexWithoutWrap = currentSlideIndex.value + delta
+  async function changeCurrentSlideBy (delta) {
+    let newIndexWithoutWrap = currentSlideIndex.value + delta
+
+    const currentLoadedSlides = this.loadedSlides
+
+    let loadingIndicatorTriggered = false
+    const loadingIndicator = this.$el.querySelector('.loadingIndicator')
+
+    const showLoadingIndicator = setTimeout(() => {
+      loadingIndicator.classList.add('animate')
+      loadingIndicatorTriggered = true
+    }, 300)
+
+    await props.beforeSlideChangeHook?.({
+      currentIndex: currentSlideIndex.value,
+      newIndex: this.wrapIndex(newIndexWithoutWrap),
+      delta,
+      length: this.numOfSlides
+    })
+
+    clearTimeout(showLoadingIndicator)
+    if (loadingIndicatorTriggered) {
+      loadingIndicator.classList.remove('animate')
+    }
+
+    newIndexWithoutWrap = currentSlideIndex.value + delta
 
     // Trigger loop indicator if change means going between the start and end
     // slides
@@ -51,10 +75,24 @@ export default function setup (slides, currentSlideIndex) {
       }
     }
 
-    return this.changeCurrentSlideTo(
-      this.wrapIndex(newIndexWithoutWrap),
-      delta
-    )
+    if (currentLoadedSlides === this.loadedSlides) {
+      return this.changeCurrentSlideTo(
+        this.wrapIndex(newIndexWithoutWrap),
+        delta
+      )
+    } else {
+      // beforeSlideChangeHook has changed what slides are loaded so wait for DOM to update
+      return new Promise(
+        resolve => this.$nextTick(
+          () => resolve(
+            this.changeCurrentSlideTo(
+              this.wrapIndex(newIndexWithoutWrap),
+              delta
+            )
+          )
+        )
+      )
+    }
   }
 
   /**
