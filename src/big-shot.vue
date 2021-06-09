@@ -4,8 +4,12 @@
       <div>
         {{currentSlideIndex + 1}} / {{numOfSlides}}
       </div>
-      <div>
+      <div class="rightSide">
         <button class="closeButton" @click="closeSlideShow">X</button>
+        <div v-for="plugin in plugins" :key="plugin.name" class="plugin">
+          <component :is="plugin.topbarIcon" class="icon">
+          </component>
+        </div>
       </div>
     </div>
     <div
@@ -42,11 +46,13 @@
         </button>
       </template>
     </div>
-    <div class="loopIndicator slideOverlayIndicator">
-      <RepeatIcon class="icon" />
-    </div>
-    <div class="loadingIndicator slideOverlayIndicator">
-      <SpinnerIcon class="icon" />
+    <div class="slideStatusIndicator">
+      <div class="container loopIndicator">
+        <RepeatIcon class="icon" />
+      </div>
+      <div class="container loadingIndicator">
+        <SpinnerIcon class="icon" />
+      </div>
     </div>
     <div class="bottombar">
     </div>
@@ -64,7 +70,7 @@ import SpinnerIcon from './assets/icons/spinner.svg'
 
 export default {
   name: 'BigShot',
-  props: ['slideData', 'rememberScale', 'beforeSlideChangeHook'],
+  props: ['slideData', 'rememberScale', 'beforeSlideChangeHook', 'plugins'],
   components: { RepeatIcon, SpinnerIcon },
   setup (props) {
     useGestures()
@@ -76,6 +82,7 @@ export default {
     } = useLoadSlides(props)
 
     return {
+      SpinnerIcon,
       slides,
       currentSlideIndex,
       ...loadSlidesProps,
@@ -200,15 +207,31 @@ export default {
     justify-content: space-between;
     align-items: center;
     z-index: 1;
+    padding: 2px 20px;
+    box-sizing: border-box;
 
-    div {
-      padding: 20px;
+    > * {
+      flex: 1 1 auto;
+      flex-direction: row-reverse;
     }
 
     button {
       color: white;
       background: none;
       border: none;
+    }
+
+    .plugin {
+      .icon {
+        height: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+    }
+
+    .rightSide {
+      display: flex;
+      height: 100%;
     }
   }
 
@@ -271,65 +294,67 @@ export default {
     }
   }
 
-  .slideOverlayIndicator {
-    left: 0;
-    right: 0;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    height: 100px;
-    width: 100px;
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.6);
-    border: none;
-    font-size: 70px;
-    color: #fff;
-    line-height: 100px;
-    text-align: center;
-    visibility: hidden;
-    transform: scale(0.3);
-    pointer-events: none;
-    opacity: 0.8;
-  }
+  .slideStatusIndicator {
+    .container {
+      left: 0;
+      right: 0;
+      margin: auto;
+      top: 0;
+      bottom: 0;
+      height: 100px;
+      width: 100px;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.6);
+      border: none;
+      font-size: 70px;
+      color: #fff;
+      line-height: 100px;
+      text-align: center;
+      visibility: hidden;
+      transform: scale(0.3);
+      pointer-events: none;
+      opacity: 0.8;
 
-  .loopIndicator {
-    .icon {
-      vertical-align: -0.2em;
+      .icon {
+        display: inline-block;
+        height: 1em;
+        width: 1em;
+      }
 
-      &::v-deep path {
-        fill: #fff;
+      &.loopIndicator {
+        .icon {
+          vertical-align: -0.2em;
+
+          &::v-deep path {
+            fill: #fff;
+          }
+        }
+
+        &.animate {
+          visibility: visible;
+          transform: scale(1);
+          opacity: 0;
+          transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
+        }
+      }
+
+      &.loadingIndicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .icon {
+          width: 70%;
+          height: 70%;
+        }
+
+        &.animate {
+          visibility: visible;
+          transform: scale(1);
+          transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
+        }
       }
     }
-
-    &.animate {
-      visibility: visible;
-      transform: scale(1);
-      opacity: 0;
-      transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
-    }
-  }
-
-  .loadingIndicator {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    .icon {
-      width: 70%;
-      height: 70%;
-    }
-
-    &.animate {
-      visibility: visible;
-      transform: scale(1);
-      transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
-    }
-  }
-
-  .icon {
-    display: inline-block;
-    height: 1em;
-    width: 1em;
   }
 }
 </style>

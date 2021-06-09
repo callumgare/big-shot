@@ -2,6 +2,8 @@
 import Vue from 'vue'
 import BigShotSource from '@/entry.js'
 import BigShotDist from '../'
+import testPluginStar from './test-plugin-star.js'
+import testPluginCircle from './test-plugin-circle.js'
 
 export default Vue.extend({
   name: 'ServeDev',
@@ -19,7 +21,9 @@ export default Vue.extend({
         { src: 'media/tree.jpg' },
         { src: 'media/tunnels.jpg' }
       ],
-      showSlideShow: true
+      showSlideShow: true,
+      testPluginStar,
+      testPluginCircle
     }
   },
   methods: {
@@ -41,6 +45,7 @@ export default Vue.extend({
       :slideData="slideData"
       @exited="() => showSlideShow = false"
       :beforeSlideChangeHook="beforeSlideChangeHook"
+      :plugins="[testPluginStar, testPluginCircle]"
     />
     <button @click="() => showSlideShow = true">Open Slide Show</button>
   </div>
