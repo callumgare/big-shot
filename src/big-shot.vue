@@ -60,11 +60,13 @@
 </template>
 
 <script>
+import mitt from 'mitt'
 import useLoadSlides from './composables/useLoadSlides'
 import useSlideControl from './composables/useSlideControl'
 import useSlidePositioning from './composables/useSlidePositioning'
 import useSlideScaling from './composables/useSlideScaling'
 import useGestures from './composables/useGestures'
+import useVideoControl from './composables/useVideoControl'
 import RepeatIcon from './assets/icons/repeat.svg'
 import SpinnerIcon from './assets/icons/spinner.svg'
 
@@ -73,22 +75,24 @@ export default {
   props: ['slideData', 'rememberScale', 'beforeSlideChangeHook', 'plugins'],
   components: { RepeatIcon, SpinnerIcon },
   setup (props) {
+    const emitter = mitt()
     useGestures()
 
     const {
       slides,
       currentSlideIndex,
       ...loadSlidesProps
-    } = useLoadSlides(props)
+    } = useLoadSlides(props, emitter)
 
     return {
       SpinnerIcon,
       slides,
       currentSlideIndex,
       ...loadSlidesProps,
-      ...useSlideControl(props, slides, currentSlideIndex),
+      ...useSlideControl(props, slides, currentSlideIndex, emitter),
       ...useSlidePositioning(),
-      ...useSlideScaling()
+      ...useSlideScaling(),
+      ...useVideoControl(emitter)
     }
   },
   created () {

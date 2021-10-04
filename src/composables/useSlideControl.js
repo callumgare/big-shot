@@ -1,6 +1,6 @@
 import { computed, onMounted, getCurrentInstance } from '@vue/composition-api'
 
-export default function setup (props, slides, currentSlideIndex) {
+export default function setup (props, slides, currentSlideIndex, emitter) {
   onMounted(() => {
     const self = getCurrentInstance()
 
@@ -104,23 +104,8 @@ export default function setup (props, slides, currentSlideIndex) {
       oldIndex: currentSlideIndex.value,
       delta: delta || newCurrentSlideIndex - currentSlideIndex.value
     })
-    this.currentSlide.mediaElm?.pause?.()
+    emitter.emit('unloadSlide', this.currentSlide)
     currentSlideIndex.value = newCurrentSlideIndex
-    this.playVideo(this.currentSlide)
-  }
-
-  /**
-   * Plays the video of a given slide if that slide has a video.
-   */
-  function playVideo (slide) {
-    if (slide.mediaElm?.play) {
-      slide.mediaElm.play()
-      setTimeout(() => {
-        if (slide.mediaElm.paused) {
-          slide.elm.querySelector('.playButton').classList.add('show')
-        }
-      }, 50)
-    }
   }
 
   /**
@@ -140,7 +125,6 @@ export default function setup (props, slides, currentSlideIndex) {
     previousSlide,
     changeCurrentSlideBy,
     changeCurrentSlideTo,
-    playVideo,
     closeSlideShow,
     currentSlide
   }

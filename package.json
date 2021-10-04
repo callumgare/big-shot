@@ -58,6 +58,7 @@
     "eslint-plugin-vue": "^6.2.2",
     "hammerjs": "^2.0.8",
     "minimist": "^1.2.5",
+    "mitt": "^3.0.0",
     "rollup": "^2.7.3",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-vue": "^5.1.6",

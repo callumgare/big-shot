@@ -3,7 +3,7 @@ import { ref, computed, onMounted, getCurrentInstance } from '@vue/composition-a
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
-export default function setup (props) {
+export default function setup (props, emitter) {
   onMounted(() => {
     getCurrentInstance().proxy.setupLoadedSlides()
   })
@@ -21,45 +21,47 @@ export default function setup (props) {
    */
   function setupLoadedSlides () {
     for (const slide of this.loadedSlides) {
-      if (slide.elm) {
-        continue
-      }
-      slide.elm = this.$refs.slide.find(
-        slideElm => slideElm.dataset.slideIndex === slide.index.toString()
-      )
       if (!slide.elm) {
-        throw new Error('Something went wrong. Can\'t access slide element.')
-      }
-      slide.mediaElm = slide.elm
-        ? slide.elm.querySelector('.media')
-        : null
-
-      if (!slide.mediaElm) {
-        throw new Error('Something went wrong. Can\'t access media element.')
-      }
-
-      this.executeOnceMediaDimensionsKnown(slide, () => {
-        this.positionLoadedSlide(slide, this.getInitialScale(slide))
-      })
-
-      slide.mediaElm.addEventListener('click', (event) => {
-        this.toggleScaleMode(this.currentSlide)
-      })
-      slide.mediaElm.addEventListener('play', () => {
-        slide.elm.querySelector('.playButton').classList.remove('show')
-      })
-      slide.mediaElm.addEventListener('pause', () => {
-        slide.elm.querySelector('.playButton').classList.add('show')
-      })
-      // Remove class for smoothing sizing change after animation has finished
-      slide.mediaElm.addEventListener('transitionend', () => {
-        if (slide.elmClasses) {
-          slide.elmClasses = slide.elmClasses
-            .filter(classText => classText !== 'animateZoom')
-
-          this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+        slide.elm = this.$refs.slide.find(
+          slideElm => slideElm.dataset.slideIndex === slide.index.toString()
+        )
+        if (!slide.elm) {
+          throw new Error('Something went wrong. Can\'t access slide element.')
         }
-      })
+        slide.mediaElm = slide.elm
+          ? slide.elm.querySelector('.media')
+          : null
+  
+        if (!slide.mediaElm) {
+          throw new Error('Something went wrong. Can\'t access media element.')
+        }
+  
+        this.executeOnceMediaDimensionsKnown(slide, () => {
+          this.positionLoadedSlide(slide, this.getInitialScale(slide))
+        })
+  
+        slide.mediaElm.addEventListener('click', (event) => {
+          this.toggleScaleMode(this.currentSlide)
+        })
+        slide.mediaElm.addEventListener('play', () => {
+          slide.elm.querySelector('.playButton').classList.remove('show')
+        })
+        slide.mediaElm.addEventListener('pause', () => {
+          slide.elm.querySelector('.playButton').classList.add('show')
+        })
+        // Remove class for smoothing sizing change after animation has finished
+        slide.mediaElm.addEventListener('transitionend', () => {
+          if (slide.elmClasses) {
+            slide.elmClasses = slide.elmClasses
+              .filter(classText => classText !== 'animateZoom')
+  
+            this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+          }
+        })
+      }
+      if (slide.index === this.currentSlideIndex) {
+        emitter.emit('newSlideLoaded', slide)
+      }
     };
   }
 
