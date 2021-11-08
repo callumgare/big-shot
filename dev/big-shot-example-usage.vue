@@ -1,18 +1,17 @@
 <script>
-import Vue from 'vue'
-import BigShotSource from '@/entry.js'
-import BigShotDist from '../'
+import BigShot from '../src/big-shot.vue'
 import testPluginStar from './test-plugin-star.js'
 import testPluginCircle from './test-plugin-circle.js'
 
-export default Vue.extend({
-  name: 'ServeDev',
+export default {
+  name: 'BigShotExampleUsage',
   components: {
-    BigShotSource,
-    BigShotDist
+    BigShot,
   },
-  props: ['componentFrom'],
-  data () {
+  props: {
+    loadPlugins: Boolean,
+  },
+  data ({loadPlugins}) {
     return {
       slideData: [
         { src: 'media/factory.jpg' },
@@ -22,8 +21,7 @@ export default Vue.extend({
         { src: 'media/tunnels.jpg' }
       ],
       showSlideShow: true,
-      testPluginStar,
-      testPluginCircle
+      plugins: loadPlugins ? [testPluginStar, testPluginCircle] : []
     }
   },
   methods: {
@@ -34,27 +32,27 @@ export default Vue.extend({
       }
     }
   }
-})
+}
 </script>
 
 <template>
-  <div id="app">
-    <component
-      :is="`big-shot-${componentFrom}`"
-      v-if="showSlideShow"
-      :slideData="slideData"
-      @exited="() => showSlideShow = false"
-      :beforeSlideChangeHook="beforeSlideChangeHook"
-      :plugins="[testPluginStar, testPluginCircle]"
-    />
-    <button @click="() => showSlideShow = true">Open Slide Show</button>
-  </div>
+  <BigShot
+    v-if="showSlideShow"
+    :slide-data="slideData"
+    :before-slide-change-hook="beforeSlideChangeHook"
+    :plugins="plugins"
+    @exited="() => showSlideShow = false"
+  />
+  <button @click="() => showSlideShow = true">
+    Open Slide Show
+  </button>
 </template>
 
 <style>
 body {
   margin: 0;
 }
+
 #app {
   display: flex;
   justify-content: center;

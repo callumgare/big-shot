@@ -1,6 +1,7 @@
 import circleIcon from './circle.svg'
+import { markRaw } from 'vue'
 
 export default {
   name: 'Test Plugin - Circle',
-  topbarIcon: circleIcon
+  topbarIcon: markRaw(circleIcon)
 }

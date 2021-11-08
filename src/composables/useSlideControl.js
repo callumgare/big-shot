@@ -1,11 +1,11 @@
-import { computed, onMounted, getCurrentInstance } from '@vue/composition-api'
+import { computed, onMounted, getCurrentInstance } from 'vue'
 
 export default function setup (props, slides, currentSlideIndex, emitter) {
   onMounted(() => {
     const self = getCurrentInstance()
 
     // Remove class used for triggering animation after animation has finished
-    const loopIndicator = self.proxy.$el.querySelector('.loopIndicator')
+    const loopIndicator = self.proxy.$el.querySelector('.loop-indicator')
     loopIndicator.addEventListener('transitionend', event => {
       if (event.propertyName !== 'opacity') return
       loopIndicator.classList.remove('animate')
@@ -35,7 +35,7 @@ export default function setup (props, slides, currentSlideIndex, emitter) {
     const currentLoadedSlides = this.loadedSlides
 
     let loadingIndicatorTriggered = false
-    const loadingIndicator = this.$el.querySelector('.loadingIndicator')
+    const loadingIndicator = this.$el.querySelector('.loading-indicator')
 
     const showLoadingIndicator = setTimeout(() => {
       loadingIndicator.classList.add('animate')
@@ -62,7 +62,7 @@ export default function setup (props, slides, currentSlideIndex, emitter) {
       newIndexWithoutWrap < 0 ||
       newIndexWithoutWrap > (this.numOfSlides - 1)
     ) {
-      const loopIndicator = this.$el.querySelector('.loopIndicator')
+      const loopIndicator = this.$el.querySelector('.loop-indicator')
       if (loopIndicator.classList.contains('animate')) {
         // This shouldn't normally happen but in cases where the user has
         // been flicking back and forth between the start and the end the

@@ -1,4 +1,4 @@
-import { ref } from '@vue/composition-api'
+import { ref } from 'vue'
 
 export default function setup () {
   const currentScalePreference = ref(undefined)
@@ -15,7 +15,7 @@ export default function setup () {
     if (slide === this.currentSlide) {
       slide.elmClasses = [
         ...(slide.elmClasses || []),
-        'animateZoom'
+        'animate-zoom'
       ]
       this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
       this.positionLoadedSlide(slide)
