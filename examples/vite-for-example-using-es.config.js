@@ -24,6 +24,7 @@ export default defineConfig({
       targets: ["built-examples/examples"],
     }),
   ],
+  base: '',
   build: {
     outDir: 'built-examples',
     rollupOptions: {
