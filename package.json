@@ -35,7 +35,7 @@
     "lint-fix:stylelint": "stylelint '{src,dev}/*.{vue,scss}' --fix",
     "lint:eslint": "eslint --ext .vue,.js src/ dev/",
     "lint-fix:eslint": "eslint --ext .vue,.js --fix src/ dev/",
-    "prepublishOnly": "npm run build"
+    "release": "release-it"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^1.9.4",
@@ -46,6 +46,7 @@
     "minimist": "^1.2.5",
     "mitt": "^3.0.0",
     "postcss-html": "^1.2.0",
+    "release-it": "^14.11.6",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-delete": "^2.0.0",
     "sass": "^1.42.1",
