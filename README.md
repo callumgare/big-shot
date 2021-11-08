@@ -1,7 +1,7 @@
 # Big Shot
 _A Vue-based image/video slide show widget._
 
-Big Shot is a image and video full screen slide show Vue component.  It’s basically a loving rip-off of [PhotoSwipe](https://photoswipe.com/) but written from the ground up in Vue. That said it’s not aiming to replicate PhotoSwipe exactly. It will probably never have quite as many features or customisations as PhotoSwipe, at the same time it does things that PhotoSwipe doesn’t like natively support video.
+Big Shot is a image and video full screen slide show component for Vue 3 (version 0.2.8 and below are compatible with Vue 2).  It’s basically a loving rip-off of [PhotoSwipe](https://photoswipe.com/) but written from the ground up in Vue. That said it’s not aiming to replicate PhotoSwipe exactly. It will probably never have quite as many features or customisations as PhotoSwipe, at the same time it does things that PhotoSwipe doesn’t like natively support video.
 
 ## 🎪 Demo
 **Check out the [live demo](https://big-shot-demo.glitch.me/).**
@@ -23,6 +23,7 @@ Big Shot is a image and video full screen slide show Vue component.  It’s basi
 - Events for slide changes
 - HTML slides
 - Rotation
+- Next/previous slide buttons
 
 I plan to slowly but continually improve Big Shot however I wouldn't rely on that. Unless you’re happy with how Big Shot functions at the moment I would recommend one of the other PhotoSwipe Vue implementations such as:
 - [vue-picture-swipe](https://www.npmjs.com/package/vue-picture-swipe) (whose readme also includes a good summary of other PhotoSwipe implementations for Vue).
@@ -68,20 +69,6 @@ In your template add:
 />
 ```
 
-**Important:** BigShot uses the Vue 2 backport of the composition API. Therefore it must be installed in the global vue instance for Big Shot to work. (Note step this is not needed if you are using Vue directly in the browser without compiling.)
-
-First add the package:
-```bash
-npm install @vue/composition-api
-```
-
-Then the file which you initialise your app you must include:
-```javascript
-import VueCompositionApi from '@vue/composition-api';
-Vue.use(VueCompositionApi);
-```
-
-
 ## 🎛 API
 The props:
 * **slideData**\
@@ -122,7 +109,7 @@ An array of plugin objects. Currently there are two supported property for plugi
 Slides can be shown in one of two scale modes, "natural" or "contain". In natural scale mode a slide will be shown with it's natural dimensions (ie no scaling to the slide will be done). "contain" will scale up or down a slide such that a slide is as big as possible without it being bigger than the current side of the view and thus cropped. By default the initial scale mode of a slide will be "natural" if the slide is smaller than it's viewport or "contain" if it's larger.A user can click on a slide to toggle scale modes as long as it is larger in "contain" mode is than it's "natural" size. If it's smaller only "natural" size will be available so as not to enlarge a slide such that it becomes blurry/pixelated.
 
 ## 🌏 Non-Vue Usage
-Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
+Although Big Shot is written in the Vue framework you don't have to have a Vue-based app to use it. Check the [source code of the demo](https://glitch.com/edit/#!/big-shot-demo) to see how it can easily be embedded in any webpage. (Although to be honest if you're not adding it to a Vue app I don't know why you wouldn't just use the original [PhotoSwipe library](https://photoswipe.com/).)
 
 
 ## ✨ Motivation

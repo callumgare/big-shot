@@ -1,20 +1,35 @@
 <template>
-  <div ref="container" class="container">
+  <div
+    ref="container"
+    class="container"
+  >
     <div class="topbar">
       <div>
-        {{currentSlideIndex + 1}} / {{numOfSlides}}
+        {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
       </div>
-      <div class="rightSide">
-        <button class="closeButton" @click="closeSlideShow">X</button>
-        <div v-for="plugin in plugins" :key="plugin.name" class="plugin">
-          <component :is="plugin.topbarIcon" class="icon">
-          </component>
+      <div class="right-side">
+        <button
+          class="close-button"
+          @click="closeSlideShow"
+        >
+          X
+        </button>
+        <div 
+          v-for="plugin in plugins?.filter(plugin => plugin.topbarIcon)"
+          :key="plugin.name"
+          class="plugin"
+        >
+          <component
+            :is="plugin.topbarIcon"
+            class="icon"
+          />
         </div>
       </div>
     </div>
     <div
       v-for="slide in loadedSlides"
       :key="slide.id"
+      :ref="`slide-${slide.id}`"
       :class="[
         'slide',
         {
@@ -24,7 +39,6 @@
         nextToggledScaleModeZoomDirection(slide) && `zoom-${nextToggledScaleModeZoomDirection(slide)}`,
         slide.elmClasses
       ]"
-      :ref="`slide`"
       :data-slide-index="slide.index"
     >
       <img
@@ -32,30 +46,32 @@
         :src="slide.data.src"
         class="media"
         :style="slide.elmStyle"
-      />
+      >
       <template v-else-if="slide.type === 'video'">
         <video
           class="media"
           :style="slide.elmStyle"
           playsinline
         >
-          <source :src="slide.data.src" />
+          <source :src="slide.data.src">
         </video>
-        <button class="playButton" @click="() => playVideo(slide)">
+        <button
+          class="play-button"
+          @click="() => playVideo(slide)"
+        >
           <span>▶</span>
         </button>
       </template>
     </div>
-    <div class="slideStatusIndicator">
-      <div class="container loopIndicator">
+    <div class="slide-status-indicator">
+      <div class="container loop-indicator">
         <RepeatIcon class="icon" />
       </div>
-      <div class="container loadingIndicator">
+      <div class="container loading-indicator">
         <SpinnerIcon class="icon" />
       </div>
     </div>
-    <div class="bottombar">
-    </div>
+    <div class="bottom-bar" />
   </div>
 </template>
 
@@ -72,8 +88,22 @@ import SpinnerIcon from './assets/icons/spinner.svg'
 
 export default {
   name: 'BigShot',
-  props: ['slideData', 'rememberScale', 'beforeSlideChangeHook', 'plugins'],
   components: { RepeatIcon, SpinnerIcon },
+  props: {
+    slideData: {
+      type: Array,
+      default: () => []
+    },
+    rememberScale: Boolean,
+    beforeSlideChangeHook: {
+      type: Function,
+      default: () => () => {}
+    },
+    plugins: {
+      type: Array,
+      default: () => []
+    },
+  },
   setup (props) {
     const emitter = mitt()
     useGestures()
@@ -93,6 +123,19 @@ export default {
       ...useSlidePositioning(),
       ...useSlideScaling(),
       ...useVideoControl(emitter)
+    }
+  },
+  watch: {
+    notLoadedSlides: {
+      handler() {
+        for (const slide of this.notLoadedSlides) {
+          slide.elm = null
+          slide.mediaElm = null
+          slide.elmStyle = null
+          slide.elmClasses = null
+        }
+      },
+      deep: true
     }
   },
   created () {
@@ -170,16 +213,6 @@ export default {
         slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
       }
     }
-  },
-  watch: {
-    notLoadedSlides () {
-      for (const slide of this.notLoadedSlides) {
-        slide.elm = null
-        slide.mediaElm = null
-        slide.elmStyle = null
-        slide.elmClasses = null
-      }
-    }
   }
 }
 </script>
@@ -199,13 +232,13 @@ export default {
   z-index: 10;
 
   .topbar {
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgb(0 0 0 / 30%);
     position: absolute;
     left: 0;
     top: 0;
     height: 44px;
     width: 100%;
-    opacity: 0.75;
+    opacity: 75%;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
@@ -215,7 +248,7 @@ export default {
     box-sizing: border-box;
 
     > * {
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       flex-direction: row-reverse;
     }
 
@@ -228,14 +261,24 @@ export default {
     .plugin {
       .icon {
         height: 100%;
+        max-width: 3em; // we need to set a max-width cos flexbox is wack
+        // https://github.com/philipwalton/flexbugs/issues/184
         padding: 10px;
         box-sizing: border-box;
       }
     }
 
-    .rightSide {
+    .right-side {
       display: flex;
       height: 100%;
+
+      > * {
+        flex: 0 1 auto;
+
+        svg {
+          width: fit-content;
+        }
+      }
     }
   }
 
@@ -244,7 +287,7 @@ export default {
     width: 100%;
     overflow: hidden;
 
-    .playButton {
+    .play-button {
       left: 0;
       right: 0;
       margin: auto;
@@ -253,14 +296,14 @@ export default {
       height: 80px;
       width: 80px;
       position: absolute;
-      background-color: rgba(255, 255, 255, 1);
+      background-color: rgb(255 255 255 / 100%);
       border: none;
       font-size: 40px;
       color: #000;
       border-radius: 40px;
       visibility: hidden;
       transform: scale(0.5);
-      opacity: 0;
+      opacity: 0%;
 
       span {
         transform: translateY(-3px) translateX(3px);
@@ -275,12 +318,12 @@ export default {
       &.show {
         visibility: visible;
         transform: scale(1);
-        opacity: 1;
+        opacity: 100%;
         transition: transform 0.2s, opacity 0.2s;
       }
     }
 
-    &.animateZoom .media {
+    &.animate-zoom .media {
       transition: transform 0.2s;
     }
 
@@ -298,7 +341,7 @@ export default {
     }
   }
 
-  .slideStatusIndicator {
+  .slide-status-indicator {
     .container {
       left: 0;
       right: 0;
@@ -308,7 +351,7 @@ export default {
       height: 100px;
       width: 100px;
       position: absolute;
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgb(0 0 0 / 60%);
       border: none;
       font-size: 70px;
       color: #fff;
@@ -317,7 +360,7 @@ export default {
       visibility: hidden;
       transform: scale(0.3);
       pointer-events: none;
-      opacity: 0.8;
+      opacity: 80%;
 
       .icon {
         display: inline-block;
@@ -325,24 +368,7 @@ export default {
         width: 1em;
       }
 
-      &.loopIndicator {
-        .icon {
-          vertical-align: -0.2em;
-
-          &::v-deep path {
-            fill: #fff;
-          }
-        }
-
-        &.animate {
-          visibility: visible;
-          transform: scale(1);
-          opacity: 0;
-          transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
-        }
-      }
-
-      &.loadingIndicator {
+      &.loading-indicator {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -355,6 +381,23 @@ export default {
         &.animate {
           visibility: visible;
           transform: scale(1);
+          transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
+        }
+      }
+
+      &.loop-indicator {
+        .icon {
+          vertical-align: -0.2em;
+
+          &:deep(path) {
+            fill: #fff !important;
+          }
+        }
+
+        &.animate {
+          visibility: visible;
+          transform: scale(1);
+          opacity: 0%;
           transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
         }
       }

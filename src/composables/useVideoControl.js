@@ -7,7 +7,7 @@ export default function setup (emitter) {
       slide.mediaElm.play()
       setTimeout(() => {
         if (slide.mediaElm.paused) {
-          slide.elm.querySelector('.playButton').classList.add('show')
+          slide.elm.querySelector('.play-button').classList.add('show')
         }
       }, 50)
     }

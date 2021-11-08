@@ -1,11 +1,12 @@
-import { ref, computed, onMounted, getCurrentInstance } from '@vue/composition-api'
+import { ref, computed, onMounted, getCurrentInstance, nextTick } from 'vue'
 
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
 export default function setup (props, emitter) {
+  const thisProxy = getCurrentInstance().proxy
   onMounted(() => {
-    getCurrentInstance().proxy.setupLoadedSlides()
+    setupLoadedSlides()
   })
 
   const numOfSlides = computed(() => {
@@ -20,11 +21,9 @@ export default function setup (props, emitter) {
    * positioned correctly etc.
    */
   function setupLoadedSlides () {
-    for (const slide of this.loadedSlides) {
+    for (const slide of thisProxy.loadedSlides) {
       if (!slide.elm) {
-        slide.elm = this.$refs.slide.find(
-          slideElm => slideElm.dataset.slideIndex === slide.index.toString()
-        )
+        slide.elm = thisProxy.$refs[`slide-${slide.id}`]
         if (!slide.elm) {
           throw new Error('Something went wrong. Can\'t access slide element.')
         }
@@ -36,33 +35,33 @@ export default function setup (props, emitter) {
           throw new Error('Something went wrong. Can\'t access media element.')
         }
   
-        this.executeOnceMediaDimensionsKnown(slide, () => {
-          this.positionLoadedSlide(slide, this.getInitialScale(slide))
+        thisProxy.executeOnceMediaDimensionsKnown(slide, () => {
+          thisProxy.positionLoadedSlide(slide, thisProxy.getInitialScale(slide))
         })
   
-        slide.mediaElm.addEventListener('click', (event) => {
-          this.toggleScaleMode(this.currentSlide)
+        slide.mediaElm.addEventListener('click', () => {
+          thisProxy.toggleScaleMode(thisProxy.currentSlide)
         })
         slide.mediaElm.addEventListener('play', () => {
-          slide.elm.querySelector('.playButton').classList.remove('show')
+          slide.elm.querySelector('.play-button').classList.remove('show')
         })
         slide.mediaElm.addEventListener('pause', () => {
-          slide.elm.querySelector('.playButton').classList.add('show')
+          slide.elm.querySelector('.play-button').classList.add('show')
         })
         // Remove class for smoothing sizing change after animation has finished
         slide.mediaElm.addEventListener('transitionend', () => {
           if (slide.elmClasses) {
             slide.elmClasses = slide.elmClasses
-              .filter(classText => classText !== 'animateZoom')
+              .filter(classText => classText !== 'animate-zoom')
   
-            this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+            thisProxy.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
           }
         })
       }
-      if (slide.index === this.currentSlideIndex) {
+      if (slide.index === thisProxy.currentSlideIndex) {
         emitter.emit('newSlideLoaded', slide)
       }
-    };
+    }
   }
 
   const slides = computed(() => {
@@ -100,14 +99,14 @@ export default function setup (props, emitter) {
     const loadedSlides = []
 
     for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
-      const slideIndex = this.wrapIndex(
-        arrayIndex + this.currentSlideIndex - maxLoadedPreviousSlides
+      const slideIndex = thisProxy.wrapIndex(
+        arrayIndex + thisProxy.currentSlideIndex - maxLoadedPreviousSlides
       )
       loadedSlides.push(slides.value[slideIndex])
     }
 
     // Wait till after render and refs assigned
-    this.$nextTick(() => this.setupLoadedSlides())
+    nextTick(() => setupLoadedSlides())
 
     return loadedSlides
   })

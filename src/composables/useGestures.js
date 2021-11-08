@@ -1,4 +1,4 @@
-import { onMounted, getCurrentInstance } from '@vue/composition-api'
+import { onMounted, getCurrentInstance } from 'vue'
 import HammerJS from 'hammerjs'
 
 export default function setup () {

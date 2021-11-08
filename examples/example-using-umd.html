@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Big Shot Demo</title>
+        <script src="https://unpkg.com/vue@next"></script>
+        <script src="/assets/big-shot.umd.js"></script>
+    </head>
+    <body>
+        <div id="app">
+            <big-shot :slide-data="slideData"></big-shot>
+        </div>
+
+        <script>
+            const { createApp } = Vue
+            const app = createApp({
+                components: {BigShot},
+                data() { 
+                    return {
+                        slideData: [
+                            {src: '/media/factory.jpg'},
+                            {src: '/media/sunset.jpg'},
+                            {src: '/media/santa.mp4', type: 'video'},
+                            {src: '/media/tree.jpg'},
+                            {src: '/media/tunnels.jpg'},
+                        ]
+                    }
+                },
+            })
+            app.mount('#app')
+        </script>
+    </body>
+</html>
