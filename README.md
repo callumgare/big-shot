@@ -4,7 +4,7 @@ _A Vue-based image/video slide show widget._
 Big Shot is a image and video full screen slide show component for Vue 3 (version 0.2.8 and below are compatible with Vue 2).  It’s basically a loving rip-off of [PhotoSwipe](https://photoswipe.com/) but written from the ground up in Vue. That said it’s not aiming to replicate PhotoSwipe exactly. It will probably never have quite as many features or customisations as PhotoSwipe, at the same time it does things that PhotoSwipe doesn’t like natively support video.
 
 ## 🎪 Demo
-**Check out the [live demo](https://big-shot-demo.glitch.me/).**
+**Check out the [live demo](https://callumgare.github.io/big-shot/example-using-umd.html).**
 
 ## ⚠️ Software Quality and Features
 **Big Shot is very much in alpha.** No assurances are given, there are no tests yet and there could potentially be breaking changes in the future. So don’t use big shot in a situation when stability is very important.
