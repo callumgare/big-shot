@@ -94,7 +94,7 @@ export default {
       type: Array,
       default: () => []
     },
-    rememberScale: Boolean,
+    rememberScale: String,
     beforeSlideChangeHook: {
       type: Function,
       default: () => () => {}
