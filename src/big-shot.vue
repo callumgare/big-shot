@@ -21,7 +21,13 @@
           :key="plugin.name"
           class="plugin"
         >
+          <img
+            v-if="plugin.topbarIcon && typeof plugin.topbarIcon === 'string'"
+            :src="plugin.topbarIcon"
+            class="icon"
+          />
           <component
+            v-else
             :is="plugin.topbarIcon"
             class="icon"
           />
