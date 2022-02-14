@@ -121,7 +121,26 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     // Use slidesNeedRerendering so that loadedSlides is recomputed on change
     // which triggers a rerender
     slidesNeedRerendering.value = !slidesNeedRerendering.value && false
-    const currentSlideIndex = thisProxy.currentSlideIndex ?? 0
+
+    if (thisProxy.currentSlideIndex === null) {
+      if (slides.value.length > 0) {
+        thisProxy.currentSlideIndex = 0
+      } else {
+        return []
+      }
+    } else {
+      if (slides.value.length > 0) {
+        if (thisProxy.currentSlideIndex < 0) {
+          thisProxy.currentSlideIndex = 0
+        } else if (thisProxy.currentSlideIndex >= slides.value.length) {
+          thisProxy.currentSlideIndex = slides.value.length - 1
+        }
+      } else {
+        thisProxy.currentSlideIndex = null
+      }
+    }
+  
+    const currentSlideIndex = thisProxy.currentSlideIndex
     const numOfLoadedSlides = Math.min(
       numOfSlides.value,
       maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
@@ -139,10 +158,6 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     // Wait till after render and refs assigned
     nextTick(() => setupLoadedSlides())
 
-    if (thisProxy.currentSlideIndex === null) {
-      thisProxy.currentSlideIndex = 0
-    }
-
     return loadedSlides
   })
 
@@ -159,6 +174,5 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     loadedSlides,
     notLoadedSlides,
     numOfSlides,
-    setupLoadedSlides
   }
 }

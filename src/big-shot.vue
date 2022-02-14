@@ -5,7 +5,9 @@
   >
     <div class="topbar">
       <div>
-        {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
+        <div v-if="currentSlideIndex !== null" >
+          {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
+        </div>
       </div>
       <div class="right-side">
         <button
