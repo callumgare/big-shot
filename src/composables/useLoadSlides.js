@@ -9,6 +9,10 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     setupLoadedSlides()
   })
 
+  emitter.on('slideMediaFailedToLoad', (error) => {
+    error.slide.mediaLoadingFailed = true
+  })
+
   const numOfSlides = computed(() => {
     return props.slideData?.length || 0
   })
@@ -34,7 +38,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         if (!slide.mediaElm) {
           throw new Error('Something went wrong. Can\'t access media element.')
         }
-  
+
         emitEventWhenLoaded(slide)
   
         slide.mediaElm.addEventListener('click', () => {
@@ -82,6 +86,8 @@ export default function setup (props, emitter, slidesNeedRerendering) {
       slide.mediaElm.addEventListener('load', () => sendEvent())
       // Used by videos
       slide.mediaElm.addEventListener('loadedmetadata', () => sendEvent())
+      // Used by both
+      slide.mediaElm.addEventListener('error', (error) => sendEvent(error))
     }
   }
 

@@ -34,15 +34,21 @@
         'slide',
         {
           'current': slide.index === currentSlideIndex,
-          'positioned': slide.elmStyle && slide.elmStyle.transform
+          'positioned': (slide.elmStyle && slide.elmStyle.transform) || (slide.mediaLoadingFailed)
         },
         nextToggledScaleModeZoomDirection(slide) && `zoom-${nextToggledScaleModeZoomDirection(slide)}`,
         slide.elmClasses
       ]"
       :data-slide-index="slide.index"
     >
+      <div
+        v-if="slide.mediaLoadingFailed"
+        class="media mediaStatus"
+      >
+        <span>Failed to load media</span>
+      </div>
       <img
-        v-if="slide.type === 'image'"
+        v-else-if="slide.type === 'image'"
         :src="slide.data.src"
         class="media"
         :style="slide.elmStyle"
@@ -294,6 +300,16 @@ export default {
         opacity: 100%;
         transition: transform 0.2s, opacity 0.2s;
       }
+    }
+
+    .mediaStatus {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3em;
+      font-weight: bold;
+      color: #d7a039;
     }
 
     &.animate-zoom .media {
