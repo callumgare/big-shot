@@ -25,14 +25,10 @@ export default function setup (emitter, slidesNeedRerendering) {
         slide.scale = this.getInitialScale(slide)
       }
 
-      function positionSlide(slide) {
-        positionLoadedSlide(slide)
-      }
-
       // We already have an event listener set up to position media
       // once loaded so we don't need to worry about that case here.
       if (slide.mediaMetadataLoaded) {
-        positionSlide(slide)
+        positionLoadedSlide(slide)
       }
     }
   }

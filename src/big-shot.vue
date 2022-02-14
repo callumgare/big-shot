@@ -5,17 +5,17 @@
   >
     <div class="topbar">
       <div class="left-side">
-        <div v-if="currentSlideIndex !== null" >
+        <div v-if="currentSlideIndex !== null">
           {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
         </div>
       </div>
       <div class="center">
         <component
+          :is="plugin.topbarCenterContent"
           v-for="plugin in plugins?.filter(plugin => plugin.topbarIcon)"
           :key="plugin.name"
-          :is="plugin.topbarCenterContent"
           v-bind="plugin.topbarCenterContentProps"
-          :current-slide="this.currentSlide"
+          :current-slide="currentSlide"
         />
       </div>
       <div class="right-side">
@@ -34,10 +34,10 @@
             v-if="plugin.topbarIcon && typeof plugin.topbarIcon === 'string'"
             :src="plugin.topbarIcon"
             class="icon"
-          />
+          >
           <component
-            v-else
             :is="plugin.topbarIcon"
+            v-else
             class="icon"
           />
         </div>
@@ -60,7 +60,7 @@
     >
       <div
         v-if="slide.mediaLoadingFailed"
-        class="media mediaStatus"
+        class="media media-status"
       >
         <span>Failed to load media</span>
       </div>
@@ -118,7 +118,10 @@ export default {
       type: Array,
       default: () => []
     },
-    rememberScale: String,
+    rememberScale: {
+      type: String,
+      default: "",
+    },
     beforeSlideChangeHook: {
       type: Function,
       default: () => () => {}
@@ -323,7 +326,7 @@ export default {
       }
     }
 
-    .mediaStatus {
+    .media-status {
       height: 100%;
       display: flex;
       justify-content: center;
