@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-export default function setup () {
+export default function setup (props, emitter) {
   const currentScalePreference = ref(undefined)
 
   /**
@@ -27,7 +27,7 @@ export default function setup () {
   }
 
   function nextToggledScaleMode (slide) {
-    if (slide.biggerThanContainer || this.rememberScale === 'contain') {
+    if (slide.biggerThanContainer || props.rememberScale === 'contain') {
       if (slide.scale === 'contain') {
         return 'natural'
       } else {
@@ -62,10 +62,10 @@ export default function setup () {
    */
   function getInitialScale (slide, ignoreRememberScale) {
     if (
-      this.rememberScale &&
+      props.rememberScale &&
       !ignoreRememberScale && (
-        this.rememberScale === currentScalePreference.value ||
-        this.rememberScale === true
+        props.rememberScale === currentScalePreference.value ||
+        props.rememberScale === true
       )
     ) {
       return currentScalePreference.value
@@ -74,6 +74,18 @@ export default function setup () {
       return 'contain'
     }
     return 'natural'
+  }
+
+  emitter.on('slideMediaPositioningMetadataLoaded', saveMediaMetadata)
+
+  /**
+   * Extracts certain metadata from slide media
+   */
+  function saveMediaMetadata (slide) {
+    slide.scale = getInitialScale(slide)
+    emitter.emit('slideMediaScalingMetadataLoaded', slide)
+    slide.mediaMetadataLoaded = true
+    emitter.emit('slideMediaMetadataLoaded', slide)
   }
 
   return {

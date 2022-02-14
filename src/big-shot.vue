@@ -76,6 +76,7 @@
 </template>
 
 <script>
+import {ref} from "vue"
 import mitt from 'mitt'
 import useLoadSlides from './composables/useLoadSlides'
 import useSlideControl from './composables/useSlideControl'
@@ -108,11 +109,13 @@ export default {
     const emitter = mitt()
     useGestures()
 
+    const slidesNeedRerendering = ref(false)
+
     const {
       slides,
       currentSlideIndex,
       ...loadSlidesProps
-    } = useLoadSlides(props, emitter)
+    } = useLoadSlides(props, emitter, slidesNeedRerendering)
 
     return {
       SpinnerIcon,
@@ -120,8 +123,8 @@ export default {
       currentSlideIndex,
       ...loadSlidesProps,
       ...useSlideControl(props, slides, currentSlideIndex, emitter),
-      ...useSlidePositioning(),
-      ...useSlideScaling(),
+      ...useSlidePositioning(emitter, slidesNeedRerendering),
+      ...useSlideScaling(props, emitter),
       ...useVideoControl(emitter)
     }
   },
@@ -154,16 +157,6 @@ export default {
         ? index % this.numOfSlides
         : ((index % this.numOfSlides) + this.numOfSlides) % this.numOfSlides
     },
-    /**
-     * Extracts certain metadata from slide media
-     */
-    saveMediaMetadata (slide) {
-      slide.mediaHeight = slide.mediaElm.naturalHeight || slide.mediaElm.videoHeight
-      slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth
-      slide.biggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
-      slide.scale = this.getInitialScale(slide)
-      this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
-    },
 
     /**
      * Handler for a key down event.
@@ -193,26 +186,6 @@ export default {
       this.positionLoadedSlide(this.currentSlide)
       this.positionAllLoadedSlides()
     },
-    executeOnceMediaDimensionsKnown (slide, callback) {
-      const processLoadedMedia = () => {
-        // Check that slide hasn't been unloaded in the mean time
-        if (!slide.elm || !document.body.contains(slide.elm)) {
-          return
-        }
-        this.saveMediaMetadata(slide)
-        callback && callback(slide)
-      }
-      if (slide.mediaHeight && slide.mediaWidth) {
-        callback && callback(slide)
-      } else if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {
-        processLoadedMedia()
-      } else {
-        // Used by images
-        slide.mediaElm.addEventListener('load', processLoadedMedia)
-        // Used by videos
-        slide.mediaElm.addEventListener('loadedmetadata', processLoadedMedia)
-      }
-    }
   }
 }
 </script>

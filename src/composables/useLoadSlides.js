@@ -3,7 +3,7 @@ import { ref, computed, onMounted, getCurrentInstance, nextTick } from 'vue'
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
-export default function setup (props, emitter) {
+export default function setup (props, emitter, slidesNeedRerendering) {
   const thisProxy = getCurrentInstance().proxy
   onMounted(() => {
     setupLoadedSlides()
@@ -35,9 +35,7 @@ export default function setup (props, emitter) {
           throw new Error('Something went wrong. Can\'t access media element.')
         }
   
-        thisProxy.executeOnceMediaDimensionsKnown(slide, () => {
-          thisProxy.positionLoadedSlide(slide, thisProxy.getInitialScale(slide))
-        })
+        emitEventWhenLoaded(slide)
   
         slide.mediaElm.addEventListener('click', () => {
           thisProxy.toggleScaleMode(thisProxy.currentSlide)
@@ -61,6 +59,29 @@ export default function setup (props, emitter) {
       if (slide.index === thisProxy.currentSlideIndex) {
         emitter.emit('newSlideLoaded', slide)
       }
+    }
+  }
+
+  function emitEventWhenLoaded (slide) {
+    const sendEvent = (error) => {
+      // Check that slide hasn't been unloaded in the mean time
+      if (!slide.elm || !document.body.contains(slide.elm)) {
+        return
+      }
+      if (error) {
+        error.slide = slide
+        emitter.emit('slideMediaFailedToLoad', error)
+      } else {
+        emitter.emit('slideMediaLoaded', slide)
+      }
+    }
+    if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {
+      sendEvent()
+    } else {
+      // Used by images
+      slide.mediaElm.addEventListener('load', () => sendEvent())
+      // Used by videos
+      slide.mediaElm.addEventListener('loadedmetadata', () => sendEvent())
     }
   }
 
@@ -91,6 +112,9 @@ export default function setup (props, emitter) {
    * and after are ever rendered.
    */
   const loadedSlides = computed(function () {
+    // Use slidesNeedRerendering so that loadedSlides is recomputed on change
+    // which triggers a rerender
+    slidesNeedRerendering.value = !slidesNeedRerendering.value && false
     const currentSlideIndex = thisProxy.currentSlideIndex ?? 0
     const numOfLoadedSlides = Math.min(
       numOfSlides.value,

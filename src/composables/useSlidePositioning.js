@@ -1,18 +1,18 @@
-export default function setup () {
+export default function setup (emitter, slidesNeedRerendering) {
   /**
   * Positions on the page the media of the current slide. This involves both
   * shifting and scaling the DOM element based on the dimensions of the media
   * and the current zoom level.
   */
   function positionLoadedSlide (slide) {
-    const transformFunctions = this.getPositionForLoadedSlide(slide)
+    const transformFunctions = getPositionForLoadedSlide(slide)
 
     slide.elmStyle = {
       ...slide.elmStyle,
       ...{ transform: transformFunctions.join(' ') }
     }
 
-    this.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+    slidesNeedRerendering.value = true
   }
 
   /**
@@ -24,12 +24,21 @@ export default function setup () {
       if (slide !== this.currentSlide) {
         slide.scale = this.getInitialScale(slide)
       }
-      this.executeOnceMediaDimensionsKnown(slide, () => this.positionLoadedSlide(slide))
+
+      function positionSlide(slide) {
+        positionLoadedSlide(slide)
+      }
+
+      // We already have an event listener set up to position media
+      // once loaded so we don't need to worry about that case here.
+      if (slide.mediaMetadataLoaded) {
+        positionSlide(slide)
+      }
     }
   }
 
   function getPositionForLoadedSlide (slide) {
-    const { container: containerSize, media: mediaSize } = this.getSlideDimensions(slide)
+    const { container: containerSize, media: mediaSize } = getSlideDimensions(slide)
     const translateHeight = (containerSize.height / 2) - (mediaSize.height / 2)
     const translateWidth = (containerSize.width / 2) - (mediaSize.width / 2)
     const scaleWidth = containerSize.width / mediaSize.width
@@ -51,8 +60,8 @@ export default function setup () {
   function getSlideDimensions (slide) {
     const dimensions = {
       container: {
-        height: this.$el.clientHeight,
-        width: this.$el.clientWidth
+        height: slide.elm.parentElement.clientHeight,
+        width: slide.elm.parentElement.clientWidth
       },
       media: {
         height: slide.data.height || slide.mediaHeight,
@@ -81,12 +90,26 @@ export default function setup () {
    * not, or null if sizes can not be deduced.
    */
   function naturalSlideSizeBiggerThanContainer (slide) {
-    const { container: containerSize, media: mediaSize } = this.getSlideDimensions(slide)
+    const { container: containerSize, media: mediaSize } = getSlideDimensions(slide)
 
     if (mediaSize.height < containerSize.height && mediaSize.width < containerSize.width) {
       return false
     }
     return true
+  }
+
+  emitter.on('slideMediaMetadataLoaded', (slide) => positionLoadedSlide(slide))
+
+  emitter.on('slideMediaLoaded', saveMediaMetadata)
+
+  /**
+   * Extracts certain metadata from slide media
+   */
+  function saveMediaMetadata (slide) {
+    slide.mediaHeight = slide.mediaElm.naturalHeight || slide.mediaElm.videoHeight
+    slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth
+    slide.biggerThanContainer = naturalSlideSizeBiggerThanContainer(slide)
+    emitter.emit('slideMediaPositioningMetadataLoaded', slide)
   }
 
   return {
