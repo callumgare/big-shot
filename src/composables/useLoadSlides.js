@@ -9,6 +9,8 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     setupLoadedSlides()
   })
 
+  const currentSlideIndex = ref(props.slideData?.length > 0 ? 0 : null)
+
   emitter.on('slideMediaFailedToLoad', (error) => {
     error.slide.mediaLoadingFailed = true
   })
@@ -92,6 +94,8 @@ export default function setup (props, emitter, slidesNeedRerendering) {
   }
 
   const slides = computed(() => {
+    const currentSlide = thisProxy.slides?.[currentSlideIndex.value]
+
     const slides = []
     for (const [index, data] of props.slideData.entries()) {
       if (!slidesMap.has(data)) {
@@ -108,6 +112,13 @@ export default function setup (props, emitter, slidesNeedRerendering) {
       const slide = slidesMap.get(data)
       slide.index = index
       slides.push(slide)
+    }
+
+    const currentSlideNewIndex = slides.indexOf(currentSlide)
+
+    if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
+      currentSlideIndex.value = currentSlideNewIndex
+      console.log(currentSlideNewIndex, 'currentSlideNewIndex')
     }
     return slides
   })
@@ -169,7 +180,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
   })
 
   return {
-    currentSlideIndex: ref(props.slideData?.length > 0 ? 0 : null),
+    currentSlideIndex,
     slides,
     loadedSlides,
     notLoadedSlides,
