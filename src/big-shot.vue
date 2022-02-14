@@ -4,10 +4,19 @@
     class="container"
   >
     <div class="topbar">
-      <div>
+      <div class="left-side">
         <div v-if="currentSlideIndex !== null" >
           {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
         </div>
+      </div>
+      <div class="center">
+        <component
+          v-for="plugin in plugins?.filter(plugin => plugin.topbarIcon)"
+          :key="plugin.name"
+          :is="plugin.topbarCenterContent"
+          v-bind="plugin.topbarCenterContentProps"
+          :current-slide="this.currentSlide"
+        />
       </div>
       <div class="right-side">
         <button
@@ -253,6 +262,10 @@ export default {
         padding: 10px;
         box-sizing: border-box;
       }
+    }
+
+    .center {
+      align-self: flex-start;
     }
 
     .right-side {
