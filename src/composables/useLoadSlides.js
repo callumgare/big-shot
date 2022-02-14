@@ -91,6 +91,7 @@ export default function setup (props, emitter) {
    * and after are ever rendered.
    */
   const loadedSlides = computed(function () {
+    const currentSlideIndex = thisProxy.currentSlideIndex ?? 0
     const numOfLoadedSlides = Math.min(
       numOfSlides.value,
       maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
@@ -100,13 +101,17 @@ export default function setup (props, emitter) {
 
     for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
       const slideIndex = thisProxy.wrapIndex(
-        arrayIndex + thisProxy.currentSlideIndex - maxLoadedPreviousSlides
+        arrayIndex + currentSlideIndex - maxLoadedPreviousSlides
       )
       loadedSlides.push(slides.value[slideIndex])
     }
 
     // Wait till after render and refs assigned
     nextTick(() => setupLoadedSlides())
+
+    if (thisProxy.currentSlideIndex === null) {
+      thisProxy.currentSlideIndex = 0
+    }
 
     return loadedSlides
   })
@@ -119,7 +124,7 @@ export default function setup (props, emitter) {
   })
 
   return {
-    currentSlideIndex: ref(props.slideData?.length > 0 ? 0 : -1),
+    currentSlideIndex: ref(props.slideData?.length > 0 ? 0 : null),
     slides,
     loadedSlides,
     notLoadedSlides,
