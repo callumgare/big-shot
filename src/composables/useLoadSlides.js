@@ -64,6 +64,32 @@ export default function setup (props, emitter, slidesNeedRerendering) {
       }
       if (slide.index === thisProxy.currentSlideIndex) {
         emitter.emit('newSlideLoaded', slide)
+
+        const loadingIndicator = thisProxy.$el.querySelector('.loading-indicator')
+    
+        loadingIndicator.classList.remove('animate')
+        setTimeout(() => {
+          if (
+            currentSlideIndex.value === slide.index &&
+            !slide.mediaMetadataLoaded &&
+            !slide.mediaLoadingFailed
+          ) {
+            emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
+            emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+            loadingIndicator.classList.add('animate')
+          }
+
+          function removeLoadingIndicator (changedSlide) {
+            if (
+              currentSlideIndex.value === slide.index &&
+              changedSlide.id === slide.id
+            ) {
+              loadingIndicator.classList.remove('animate')
+              emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
+              emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+            }
+          }
+        }, 300)
       }
     }
   }
@@ -78,7 +104,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         error.slide = slide
         emitter.emit('slideMediaFailedToLoad', error)
       } else {
-        emitter.emit('slideMediaLoaded', slide)
+        setTimeout(() => emitter.emit('slideMediaLoaded', slide), 3000)
       }
     }
     if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {

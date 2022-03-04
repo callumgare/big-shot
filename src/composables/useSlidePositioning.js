@@ -5,6 +5,15 @@ export default function setup (emitter, slidesNeedRerendering) {
   * and the current zoom level.
   */
   function positionLoadedSlide (slide) {
+    // Trying to position the slide but we don't know how big it is. This function
+    // will be called again when the media has finished loading so at which point
+    // we should know the size so we can just return now and expect to be called 
+    // later.
+    try {
+      getSlideDimensions (slide)
+    } catch (error) {
+      return
+    }
     const transformFunctions = getPositionForLoadedSlide(slide)
 
     slide.elmStyle = {
@@ -71,7 +80,6 @@ export default function setup (emitter, slidesNeedRerendering) {
       throw new Error('Could not get container width')
     }
     if (!dimensions.media.height) {
-      console.warn(slide)
       throw new Error('Could not get media height')
     }
     if (!dimensions.media.width) {
@@ -111,7 +119,6 @@ export default function setup (emitter, slidesNeedRerendering) {
   return {
     positionLoadedSlide,
     positionAllLoadedSlides,
-    getPositionForLoadedSlide,
     getSlideDimensions,
     naturalSlideSizeBiggerThanContainer
   }
