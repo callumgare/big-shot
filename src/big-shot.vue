@@ -203,6 +203,14 @@ export default {
       // Current zoom level may no longer be valid so try re-applying
       // this.setZoomLevel(this.zoomLevel);
       for (const slide of this.loadedSlides) {
+        // To work out the proper scale mode we need to know the media dimensions which
+        // we might not know until the media has loaded. Since the scale mode is also
+        // set when loaded we don't need to worry about doing it now.
+        try {
+          this.naturalSlideSizeBiggerThanContainer(slide)
+        } catch (error) {
+          return
+        }
         const newBiggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
         if (slide.biggerThanContainer !== newBiggerThanContainer) {
           slide.biggerThanContainer = newBiggerThanContainer

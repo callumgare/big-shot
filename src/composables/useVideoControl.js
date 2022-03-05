@@ -4,7 +4,13 @@ export default function setup (emitter) {
    */
   function playVideo (slide) {
     if (slide.mediaElm?.play) {
-      slide.mediaElm.play()
+      try {
+        slide.mediaElm.play()
+      } catch (error) {
+        // We couldn't play (auto play might be blocked by the browser) so
+        // show the play button immediately
+        slide.elm.querySelector('.play-button').classList.add('show')
+      }
       setTimeout(() => {
         if (slide.mediaElm.paused) {
           slide.elm.querySelector('.play-button').classList.add('show')
