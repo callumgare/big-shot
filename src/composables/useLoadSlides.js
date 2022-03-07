@@ -21,6 +21,8 @@ export default function setup (props, emitter, slidesNeedRerendering) {
 
   const slidesMap = new WeakMap()
 
+  const previousCurrentSlideIndex = ref(null)
+
   /**
    * Managers the DOM elements which make up the slide show. Attaches event
    * handlers and extracts the metadata from the loaded media, ensures it is
@@ -33,6 +35,12 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         if (!slide.elm) {
           throw new Error('Something went wrong. Can\'t access slide element.')
         }
+
+        if (slide.type === 'video-first-interaction') {
+          slide.elm.querySelector('.play-button').classList.add('show')
+          continue
+        }
+
         slide.mediaElm = slide.elm
           ? slide.elm.querySelector('.media')
           : null
@@ -47,10 +55,10 @@ export default function setup (props, emitter, slidesNeedRerendering) {
           thisProxy.toggleScaleMode(thisProxy.currentSlide)
         })
         slide.mediaElm.addEventListener('play', () => {
-          slide.elm.querySelector('.play-button').classList.remove('show')
+          slide.elm?.querySelector('.play-button').classList.remove('show')
         })
         slide.mediaElm.addEventListener('pause', () => {
-          slide.elm.querySelector('.play-button').classList.add('show')
+          slide.elm?.querySelector('.play-button').classList.add('show')
         })
         // Remove class for smoothing sizing change after animation has finished
         slide.mediaElm.addEventListener('transitionend', () => {
@@ -62,36 +70,40 @@ export default function setup (props, emitter, slidesNeedRerendering) {
           }
         })
       }
-      if (slide.index === thisProxy.currentSlideIndex) {
-        emitter.emit('newSlideLoaded', slide)
 
-        const loadingIndicator = thisProxy.$el.querySelector('.loading-indicator')
-    
-        loadingIndicator.classList.remove('animate')
-        setTimeout(() => {
-          if (
-            currentSlideIndex.value === slide.index &&
-            !slide.mediaMetadataLoaded &&
-            !slide.mediaLoadingFailed
-          ) {
-            emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
-            emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-            loadingIndicator.classList.add('animate')
-          }
+      if (previousCurrentSlideIndex.value !== thisProxy.currentSlideIndex) {
+        if (slide.index === thisProxy.currentSlideIndex) {
+          emitter.emit('newSlideLoaded', slide)
 
-          function removeLoadingIndicator (changedSlide) {
+          const loadingIndicator = thisProxy.$el.querySelector('.loading-indicator')
+      
+          loadingIndicator.classList.remove('animate')
+          setTimeout(() => {
             if (
               currentSlideIndex.value === slide.index &&
-              changedSlide.id === slide.id
+              !slide.mediaMetadataLoaded &&
+              !slide.mediaLoadingFailed
             ) {
-              loadingIndicator.classList.remove('animate')
-              emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
-              emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+              emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
+              emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+              loadingIndicator.classList.add('animate')
             }
-          }
-        }, 300)
+
+            function removeLoadingIndicator (changedSlide) {
+              if (
+                currentSlideIndex.value === slide.index &&
+                changedSlide.id === slide.id
+              ) {
+                loadingIndicator.classList.remove('animate')
+                emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
+                emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+              }
+            }
+          }, 300)
+        }
       }
     }
+    previousCurrentSlideIndex.value = thisProxy.currentSlideIndex
   }
 
   function emitEventWhenLoaded (slide) {
@@ -149,6 +161,20 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     return slides
   })
 
+  const userInteractHasOccurred = ref(false)
+
+  function logUserInteractionHasOccurred() {
+    userInteractHasOccurred.value = true
+    emitter.off('playRequested', logUserInteractionHasOccurred) 
+    nextTick( // first we need to wait for the new slide elements to be rendered
+      () => nextTick( // then we need to wait for the setup slides function to register the element
+        // Finally our slide object is now different so we need to get the new slide object
+        () => emitter.emit('playRequested', slides.value[currentSlideIndex.value])
+      )
+    )
+  }
+  emitter.on('playRequested', logUserInteractionHasOccurred) 
+
   /**
    * Get the subset of the slides which should be rendered to the DOM. For
    * performance reasons only the current slide and a few slides before
@@ -189,7 +215,16 @@ export default function setup (props, emitter, slidesNeedRerendering) {
       const slideIndex = thisProxy.wrapIndex(
         arrayIndex + currentSlideIndex - maxLoadedPreviousSlides
       )
-      loadedSlides.push(slides.value[slideIndex])
+      const slide = slides.value[slideIndex]
+      if (!userInteractHasOccurred.value && slide?.type === 'video') {
+        loadedSlides.push({
+          ...slide,
+          elmStyle: {transform: true},
+          type: 'video-first-interaction'
+        })
+      } else {
+        loadedSlides.push(slide)
+      }
     }
 
     // Wait till after render and refs assigned

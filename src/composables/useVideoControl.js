@@ -28,6 +28,7 @@ export default function setup (emitter) {
 
   emitter.on('newSlideLoaded', playVideo)
   emitter.on('unloadSlide', pauseVideo)
+  emitter.on('playRequested', playVideo)
 
   return {
     playVideo

@@ -80,10 +80,25 @@
         </video>
         <button
           class="play-button"
-          @click="() => playVideo(slide)"
+          @click="emitter.emit('playRequested', slide)"
         >
           <span>▶</span>
         </button>
+      </template>
+      <template v-else-if="slide.type === 'video-first-interaction'">
+        <button
+          class="play-button"
+          @click="emitter.emit('playRequested', slide)"
+        >
+          <span>▶</span>
+        </button>
+      </template>
+      <template v-else>
+        <div
+          class="media media-status"
+        >
+          <span>Can't load media type {{ slide.type }}</span>
+        </div>
       </template>
     </div>
     <div class="slide-status-indicator">
@@ -151,7 +166,8 @@ export default {
       ...useSlideControl(props, slides, currentSlideIndex, emitter),
       ...useSlidePositioning(emitter, slidesNeedRerendering),
       ...useSlideScaling(props, emitter),
-      ...useVideoControl(emitter)
+      ...useVideoControl(emitter),
+      emitter
     }
   },
   watch: {
