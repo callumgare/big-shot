@@ -104,7 +104,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         error.slide = slide
         emitter.emit('slideMediaFailedToLoad', error)
       } else {
-        setTimeout(() => emitter.emit('slideMediaLoaded', slide), 3000)
+        emitter.emit('slideMediaLoaded', slide)
       }
     }
     if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {

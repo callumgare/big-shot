@@ -302,6 +302,7 @@ export default {
       left: 0;
       right: 0;
       margin: auto;
+      padding: 0;
       top: 0;
       bottom: 0;
       height: 80px;
@@ -315,6 +316,7 @@ export default {
       visibility: hidden;
       transform: scale(0.5);
       opacity: 0%;
+      box-sizing: unset;
 
       span {
         transform: translateY(-3px) translateX(3px);
