@@ -1,6 +1,6 @@
 import { computed, onMounted, getCurrentInstance } from 'vue'
 
-export default function setup (props, slides, currentSlideIndex, emitter) {
+export default function setup (props, {slides, currentSlideIndex, emitter, showLoadingIndicator}) {
   onMounted(() => {
     const self = getCurrentInstance()
 
@@ -34,12 +34,10 @@ export default function setup (props, slides, currentSlideIndex, emitter) {
 
     const currentLoadedSlides = this.loadedSlides
 
-    let loadingIndicatorTriggered = false
-    const loadingIndicator = this.$el.querySelector('.loading-indicator')
-
-    const showLoadingIndicator = setTimeout(() => {
-      loadingIndicator.classList.add('animate')
-      loadingIndicatorTriggered = true
+    const timeoutId = setTimeout(() => {
+      if (!showLoadingIndicator.value) {
+        showLoadingIndicator.value = true
+      }
     }, 300)
 
     await props.beforeSlideChangeHook?.({
@@ -49,9 +47,9 @@ export default function setup (props, slides, currentSlideIndex, emitter) {
       length: this.numOfSlides
     })
 
-    clearTimeout(showLoadingIndicator)
-    if (loadingIndicatorTriggered) {
-      loadingIndicator.classList.remove('animate')
+    clearTimeout(timeoutId)
+    if (showLoadingIndicator.value) {
+      showLoadingIndicator.value = false
     }
 
     newIndexWithoutWrap = currentSlideIndex.value + delta

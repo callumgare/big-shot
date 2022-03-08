@@ -1,27 +1,48 @@
-import { ref, computed, onMounted, getCurrentInstance, nextTick } from 'vue'
+import { ref, computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
 
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
-export default function setup (props, emitter, slidesNeedRerendering) {
+export default function setup (props, {emitter, currentSlideIndex, currentSlide, slides, numOfSlides, showLoadingIndicator}) {
   const thisProxy = getCurrentInstance().proxy
   onMounted(() => {
     setupLoadedSlides()
   })
 
-  const currentSlideIndex = ref(props.slideData?.length > 0 ? 0 : null)
-
   emitter.on('slideMediaFailedToLoad', (error) => {
     error.slide.mediaLoadingFailed = true
   })
 
-  const numOfSlides = computed(() => {
-    return props.slideData?.length || 0
+  emitter.on('newSlideLoaded', (slide) => {
+    if (showLoadingIndicator.value) {
+      showLoadingIndicator.value = false
+    }
+    setTimeout(() => {
+      if (
+        currentSlideIndex.value === slide.index &&
+        !slide.mediaMetadataLoaded &&
+        !slide.mediaLoadingFailed
+      ) {
+        emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
+        emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+        console.log('new slide hasnt loaded or failed yet so setting loading indicator')
+        showLoadingIndicator.value = true
+      }
+
+      function removeLoadingIndicator (changedSlide) {
+        if (
+          currentSlideIndex.value === slide.index &&
+          changedSlide.id === slide.id
+        ) {
+          showLoadingIndicator.value = false
+          emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
+          emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+        }
+      }
+    }, 300)
   })
 
-  const slidesMap = new WeakMap()
-
-  const previousCurrentSlideIndex = ref(null)
+  const previousCurrentSlideId = ref(null)
 
   /**
    * Managers the DOM elements which make up the slide show. Attaches event
@@ -29,7 +50,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
    * positioned correctly etc.
    */
   function setupLoadedSlides () {
-    for (const slide of thisProxy.loadedSlides) {
+    for (const slide of loadedSlides.value) {
       if (!slide.elm) {
         slide.elm = thisProxy.$refs[`slide-${slide.id}`]
         if (!slide.elm) {
@@ -52,7 +73,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         emitEventWhenLoaded(slide)
   
         slide.mediaElm.addEventListener('click', () => {
-          thisProxy.toggleScaleMode(thisProxy.currentSlide)
+          thisProxy.toggleScaleMode(currentSlide.value)
         })
         slide.mediaElm.addEventListener('play', () => {
           slide.elm?.querySelector('.play-button').classList.remove('show')
@@ -71,39 +92,13 @@ export default function setup (props, emitter, slidesNeedRerendering) {
         })
       }
 
-      if (previousCurrentSlideIndex.value !== thisProxy.currentSlideIndex) {
-        if (slide.index === thisProxy.currentSlideIndex) {
+      if (previousCurrentSlideId.value !== slides.value[currentSlideIndex.value]?.id) {
+        if (slide.index === currentSlideIndex.value) {
           emitter.emit('newSlideLoaded', slide)
-
-          const loadingIndicator = thisProxy.$el.querySelector('.loading-indicator')
-      
-          loadingIndicator.classList.remove('animate')
-          setTimeout(() => {
-            if (
-              currentSlideIndex.value === slide.index &&
-              !slide.mediaMetadataLoaded &&
-              !slide.mediaLoadingFailed
-            ) {
-              emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
-              emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-              loadingIndicator.classList.add('animate')
-            }
-
-            function removeLoadingIndicator (changedSlide) {
-              if (
-                currentSlideIndex.value === slide.index &&
-                changedSlide.id === slide.id
-              ) {
-                loadingIndicator.classList.remove('animate')
-                emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
-                emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
-              }
-            }
-          }, 300)
         }
       }
     }
-    previousCurrentSlideIndex.value = thisProxy.currentSlideIndex
+    previousCurrentSlideId.value = slides.value[currentSlideIndex.value]?.id
   }
 
   function emitEventWhenLoaded (slide) {
@@ -131,36 +126,6 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     }
   }
 
-  const slides = computed(() => {
-    const currentSlide = thisProxy.slides?.[currentSlideIndex.value]
-
-    const slides = []
-    for (const [index, data] of props.slideData.entries()) {
-      if (!slidesMap.has(data)) {
-        slidesMap.set(data, {
-          data,
-          type: data?.type || 'image',
-          mediaHeight: undefined,
-          mediaWidth: undefined,
-          biggerThanContainer: undefined,
-          scale: undefined,
-          id: index + Math.random()
-        })
-      }
-      const slide = slidesMap.get(data)
-      slide.index = index
-      slides.push(slide)
-    }
-
-    const currentSlideNewIndex = slides.indexOf(currentSlide)
-
-    if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
-      currentSlideIndex.value = currentSlideNewIndex
-      console.log(currentSlideNewIndex, 'currentSlideNewIndex')
-    }
-    return slides
-  })
-
   const userInteractHasOccurred = ref(false)
 
   function logUserInteractionHasOccurred() {
@@ -175,6 +140,9 @@ export default function setup (props, emitter, slidesNeedRerendering) {
   }
   emitter.on('playRequested', logUserInteractionHasOccurred) 
 
+
+  const slidesNeedRerendering = ref(false)
+  emitter.on('slidesRerenderRequested', () => slidesNeedRerendering.value = true)
   /**
    * Get the subset of the slides which should be rendered to the DOM. For
    * performance reasons only the current slide and a few slides before
@@ -185,25 +153,25 @@ export default function setup (props, emitter, slidesNeedRerendering) {
     // which triggers a rerender
     slidesNeedRerendering.value = !slidesNeedRerendering.value && false
 
-    if (thisProxy.currentSlideIndex === null) {
+    if (currentSlideIndex.value === null) {
       if (slides.value.length > 0) {
-        thisProxy.currentSlideIndex = 0
+        currentSlideIndex.value = 0
       } else {
         return []
       }
     } else {
       if (slides.value.length > 0) {
-        if (thisProxy.currentSlideIndex < 0) {
-          thisProxy.currentSlideIndex = 0
-        } else if (thisProxy.currentSlideIndex >= slides.value.length) {
-          thisProxy.currentSlideIndex = slides.value.length - 1
+        if (currentSlideIndex.value < 0) {
+          currentSlideIndex.value = 0
+        } else if (currentSlideIndex.value >= slides.value.length) {
+          currentSlideIndex.value = slides.value.length - 1
         }
       } else {
         thisProxy.currentSlideIndex = null
+        return []
       }
     }
   
-    const currentSlideIndex = thisProxy.currentSlideIndex
     const numOfLoadedSlides = Math.min(
       numOfSlides.value,
       maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
@@ -213,7 +181,7 @@ export default function setup (props, emitter, slidesNeedRerendering) {
 
     for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
       const slideIndex = thisProxy.wrapIndex(
-        arrayIndex + currentSlideIndex - maxLoadedPreviousSlides
+        arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
       )
       const slide = slides.value[slideIndex]
       if (!userInteractHasOccurred.value && slide?.type === 'video') {

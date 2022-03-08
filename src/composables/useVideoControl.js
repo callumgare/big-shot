@@ -1,4 +1,4 @@
-export default function setup (emitter) {
+export default function setup (props, {emitter, currentSlide, showLoadingIndicator}) {
   /**
    * Plays the video of a given slide if that slide has a video.
    */

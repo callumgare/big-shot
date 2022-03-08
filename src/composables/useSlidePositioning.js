@@ -1,4 +1,4 @@
-export default function setup (emitter, slidesNeedRerendering) {
+export default function setup (props, {emitter}) {
   /**
   * Positions on the page the media of the current slide. This involves both
   * shifting and scaling the DOM element based on the dimensions of the media
@@ -21,7 +21,7 @@ export default function setup (emitter, slidesNeedRerendering) {
       ...{ transform: transformFunctions.join(' ') }
     }
 
-    slidesNeedRerendering.value = true
+    emitter.emit('slidesRerenderRequested')
   }
 
   /**
@@ -112,6 +112,10 @@ export default function setup (emitter, slidesNeedRerendering) {
   function saveMediaMetadata (slide) {
     slide.mediaHeight = slide.mediaElm.naturalHeight || slide.mediaElm.videoHeight
     slide.mediaWidth = slide.mediaElm.naturalWidth || slide.mediaElm.videoWidth
+    if (!slide.mediaHeight || !slide.mediaWidth) {
+      console.error('Could not get media dimensions', slide, slide.mediaElm)
+      return
+    }
     slide.biggerThanContainer = naturalSlideSizeBiggerThanContainer(slide)
     emitter.emit('slideMediaPositioningMetadataLoaded', slide)
   }

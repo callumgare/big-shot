@@ -76,7 +76,10 @@
           :style="slide.elmStyle"
           playsinline
         >
-          <source :src="slide.data.src">
+          <source
+            :src="slide.data.src"
+            :type="slide.data.mimeType"
+          >
         </video>
         <button
           class="play-button"
@@ -105,7 +108,10 @@
       <div class="container loop-indicator">
         <RepeatIcon class="icon" />
       </div>
-      <div class="container loading-indicator">
+      <div
+        v-if="showLoadingIndicator"
+        class="container loading-indicator"
+      >
         <SpinnerIcon class="icon" />
       </div>
     </div>
@@ -114,8 +120,7 @@
 </template>
 
 <script>
-import {ref} from "vue"
-import mitt from 'mitt'
+import useShared from './composables/useShared'
 import useLoadSlides from './composables/useLoadSlides'
 import useSlideControl from './composables/useSlideControl'
 import useSlidePositioning from './composables/useSlidePositioning'
@@ -147,27 +152,18 @@ export default {
     },
   },
   setup (props) {
-    const emitter = mitt()
     useGestures()
 
-    const slidesNeedRerendering = ref(false)
-
-    const {
-      slides,
-      currentSlideIndex,
-      ...loadSlidesProps
-    } = useLoadSlides(props, emitter, slidesNeedRerendering)
+    const shared = useShared(props)
 
     return {
       SpinnerIcon,
-      slides,
-      currentSlideIndex,
-      ...loadSlidesProps,
-      ...useSlideControl(props, slides, currentSlideIndex, emitter),
-      ...useSlidePositioning(emitter, slidesNeedRerendering),
-      ...useSlideScaling(props, emitter),
-      ...useVideoControl(emitter),
-      emitter
+      ...shared,
+      ...useLoadSlides(props, shared),
+      ...useSlideControl(props, shared),
+      ...useSlidePositioning(props, shared),
+      ...useSlideScaling(props, shared),
+      ...useVideoControl(props, shared),
     }
   },
   watch: {
@@ -225,7 +221,7 @@ export default {
         try {
           this.naturalSlideSizeBiggerThanContainer(slide)
         } catch (error) {
-          return
+          continue
         }
         const newBiggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
         if (slide.biggerThanContainer !== newBiggerThanContainer) {
@@ -411,16 +407,30 @@ export default {
         display: flex;
         justify-content: center;
         align-items: center;
+        visibility: unset;
+        transform: unset;
+        border-radius: 50%;
 
         .icon {
           width: 70%;
           height: 70%;
         }
 
-        &.animate {
-          visibility: visible;
-          transform: scale(1);
-          transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
+        animation: entrance-animation 1s linear;
+
+        @keyframes entrance-animation {
+          0% {
+            transform: scale(0.3);
+            opacity: 0%;
+          }
+
+          50% {
+            opacity: 80%;
+          }
+
+          100% {
+            transform: scale(1);
+          }
         }
       }
 
