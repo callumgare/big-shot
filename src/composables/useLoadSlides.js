@@ -187,6 +187,7 @@ export default function setup (props, {emitter, currentSlideIndex, currentSlide,
       if (!userInteractHasOccurred.value && slide?.type === 'video') {
         loadedSlides.push({
           ...slide,
+          id: slide.id + '-stub',
           elmStyle: {transform: true},
           type: 'video-first-interaction'
         })
@@ -206,6 +207,20 @@ export default function setup (props, {emitter, currentSlideIndex, currentSlide,
       .filter(
         slide => !loadedSlides.value.some(loadedSlide => loadedSlide === slide)
       )
+  })
+
+  watch(notLoadedSlides, (notLoadedSlides) => {
+    for (const slide of notLoadedSlides) {
+      if (slide.mediaElm) {
+        if (slide.mediaElm.src) {
+          slide.mediaElm.src = ""
+        }
+        const sourceElms = Array.from(slide.mediaElm.children).filter(tag => tag.tagName === "SOURCE")
+        if (sourceElms.length) {
+          sourceElms.forEach(sourceElm => slide.mediaElm.removeChild(sourceElm))
+        }
+      }
+    }
   })
 
   return {
