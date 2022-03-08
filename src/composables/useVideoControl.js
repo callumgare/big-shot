@@ -11,11 +11,43 @@ export default function setup (props, {emitter, currentSlide, showLoadingIndicat
         // show the play button immediately
         slide.elm.querySelector('.play-button').classList.add('show')
       }
+
+      let waiting = false
+
+      slide.mediaElm.addEventListener('playing', () => {
+        waiting = false
+        if (slide.id === currentSlide.value?.id) {
+          if (showLoadingIndicator.value) {
+            showLoadingIndicator.value = false
+          }
+        }
+      });
+
+      slide.mediaElm.addEventListener('pause', () => {
+        waiting = false
+        if (slide.id === currentSlide.value?.id) {
+          if (showLoadingIndicator.value) {
+            showLoadingIndicator.value = false
+          }
+        }
+      });
+
+      slide.mediaElm.addEventListener('waiting', () => {
+        waiting = true
+        setTimeout(() => {
+          if (waiting && slide.id === currentSlide.value?.id) {
+            showLoadingIndicator.value = true
+          }
+        }, 1000)
+      });
+  
       setTimeout(() => {
         if (slide.mediaElm.paused) {
           slide.elm.querySelector('.play-button').classList.add('show')
         }
       }, 50)
+    } else {
+      console.warn('Attempted to play but slide has no media elm', slide)
     }
   }
 
