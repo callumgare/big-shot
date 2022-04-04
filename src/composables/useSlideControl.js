@@ -114,16 +114,11 @@ export default function setup (props, {slides, currentSlideIndex, emitter, showL
     this.$emit('exited')
   }
 
-  const currentSlide = computed(() => {
-    return slides.value[currentSlideIndex.value]
-  })
-
   return {
     nextSlide,
     previousSlide,
     changeCurrentSlideBy,
     changeCurrentSlideTo,
     closeSlideShow,
-    currentSlide
   }
 }
