@@ -8,6 +8,9 @@
         <div v-if="currentSlideIndex !== null">
           {{ currentSlideIndex + 1 }} / {{ numOfSlides }}
         </div>
+        <div v-else>
+          No slides
+        </div>
       </div>
       <div class="center">
         <component
