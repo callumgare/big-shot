@@ -16,12 +16,10 @@ export default function setup (props, {emitter}) {
     }
     const transformFunctions = getPositionForLoadedSlide(slide)
 
-    slide.elmStyle = {
-      ...slide.elmStyle,
+    slide.elmStyleRef.value = {
+      ...slide.elmStyleRef.value,
       ...{ transform: transformFunctions.join(' ') }
     }
-
-    emitter.emit('slidesRerenderRequested')
   }
 
   /**
@@ -31,12 +29,12 @@ export default function setup (props, {emitter}) {
   function positionAllLoadedSlides () {
     for (const slide of this.loadedSlides) {
       if (slide !== this.currentSlide) {
-        slide.scale = this.getInitialScale(slide)
+        slide.positioning.scaleMode = this.getInitialScale(slide)
       }
 
       // We already have an event listener set up to position media
       // once loaded so we don't need to worry about that case here.
-      if (slide.mediaMetadataLoaded) {
+      if (slide.mediaLoadingStatus === "loaded") {
         positionLoadedSlide(slide)
       }
     }
@@ -54,7 +52,7 @@ export default function setup (props, {emitter}) {
     // Scale first to natural size
     transformFunctions.push(`translate(${translateWidth}px, ${translateHeight}px)`)
 
-    if (slide.scale === 'contain') {
+    if (slide.positioning.scaleMode === 'contain') {
       // Then scale to contain size if necessary
       transformFunctions.push(`scale(${scale})`)
     }

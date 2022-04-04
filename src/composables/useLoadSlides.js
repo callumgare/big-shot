@@ -1,4 +1,5 @@
-import { ref, computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
+import { computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
+import { isIosDevice } from '../utils/browser'
 
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
@@ -10,6 +11,7 @@ export default function setup (props, {
   slides,
   numOfSlides,
   showLoadingIndicator,
+  userInteractHasOccurred,
   wrapIndex
 }) {
   const thisProxy = getCurrentInstance().proxy
@@ -18,39 +20,45 @@ export default function setup (props, {
   })
 
   emitter.on('slideMediaFailedToLoad', (error) => {
-    error.slide.mediaLoadingFailed = true
+    error.slide.mediaLoadingStatus = "failed"
   })
 
   emitter.on('newSlideLoaded', (slide) => {
+    if (slide.mediaLoadingStatus === "loading") {
+      showLoadingIndicatorIfStuck(slide)
+    }
+  })
+
+  function showLoadingIndicatorIfStuck(slide) {
     if (showLoadingIndicator.value) {
       showLoadingIndicator.value = false
     }
-    setTimeout(() => {
-      if (
-        currentSlideIndex.value === slide.index &&
-        !slide.mediaMetadataLoaded &&
-        !slide.mediaLoadingFailed
-      ) {
-        emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
-        emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-        console.log('new slide hasnt loaded or failed yet so setting loading indicator')
-        showLoadingIndicator.value = true
-      }
 
-      function removeLoadingIndicator (changedSlide) {
+    if (slide.mediaLoadingStatus) {
+      setTimeout(() => {
         if (
           currentSlideIndex.value === slide.index &&
-          changedSlide.id === slide.id
+          slide.mediaLoadingStatus !== "loaded"
         ) {
-          showLoadingIndicator.value = false
-          emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
-          emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+          emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
+          emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+          console.warn('new slide hasnt loaded or failed yet so setting loading indicator')
+          showLoadingIndicator.value = true
         }
-      }
-    }, 300)
-  })
-
-  const previousCurrentSlideId = ref(null)
+  
+        function removeLoadingIndicator (changedSlide) {
+          if (
+            currentSlideIndex.value === slide.index &&
+            changedSlide.id === slide.id
+          ) {
+            showLoadingIndicator.value = false
+            emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
+            emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+          }
+        }
+      }, 300)
+    }
+  }
 
   /**
    * Managers the DOM elements which make up the slide show. Attaches event
@@ -60,54 +68,63 @@ export default function setup (props, {
   function setupLoadedSlides () {
     for (const slide of loadedSlides.value) {
       if (!slide.elm) {
-        slide.elm = thisProxy.$refs[`slide-${slide.id}`]
-        if (!slide.elm) {
-          throw new Error('Something went wrong. Can\'t access slide element.')
-        }
-
-        if (slide.type === 'video-first-interaction') {
-          slide.elm.querySelector('.play-button').classList.add('show')
-          continue
-        }
-
-        slide.mediaElm = slide.elm
-          ? slide.elm.querySelector('.media')
-          : null
-  
-        if (!slide.mediaElm) {
-          throw new Error('Something went wrong. Can\'t access media element.')
-        }
-
-        emitEventWhenLoaded(slide)
-  
-        slide.mediaElm.addEventListener('click', () => {
-          thisProxy.toggleScaleMode(currentSlide.value)
-        })
-        slide.mediaElm.addEventListener('play', () => {
-          slide.elm?.querySelector('.play-button').classList.remove('show')
-        })
-        slide.mediaElm.addEventListener('pause', () => {
-          slide.elm?.querySelector('.play-button').classList.add('show')
-        })
-        // Remove class for smoothing sizing change after animation has finished
-        slide.mediaElm.addEventListener('transitionend', () => {
-          if (slide.elmClasses) {
-            slide.elmClasses = slide.elmClasses
-              .filter(classText => classText !== 'animate-zoom')
-  
-            thisProxy.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
-          }
-        })
+        console.warn(`Slide ${slide.index} is in loadedSlides but does not have an elm ref`, slide, slide.elm)
+        continue
       }
 
-      if (previousCurrentSlideId.value !== slides.value[currentSlideIndex.value]?.id) {
-        if (slide.index === currentSlideIndex.value) {
-          emitter.emit('newSlideLoaded', slide)
+      if (slide.mediaLoadingStatus) {
+        // iOS seems more likely to autoplay videos if no videos are loaded until after the first
+        // user interaction
+        if (slide.type === "video" && !userInteractHasOccurred.value && isIosDevice()) {
+          slide.mediaLoadingStatus = "delayed till play"
+        } else {
+          if (!slide.mediaElm) {
+            console.error(`Slide ${slide.index} is a media slide but does not have a media elm ref`)
+            continue
+          }
+          if (slide.mediaLoadingStatus === "not loaded") {
+            slide.mediaLoadingStatus = "loading"
+            setupSlideMedia(slide)
+          }
         }
+
       }
     }
-    previousCurrentSlideId.value = slides.value[currentSlideIndex.value]?.id
   }
+
+  function setupSlideMedia(slide) {
+    emitEventWhenLoaded(slide)
+
+    slide.mediaElm.addEventListener('click', () => {
+      thisProxy.toggleScaleMode(currentSlide.value)
+    })
+    slide.mediaElm.addEventListener('play', () => {
+      slide.elm?.querySelector('.play-button').classList.remove('show')
+    })
+    slide.mediaElm.addEventListener('pause', () => {
+      slide.elm?.querySelector('.play-button').classList.add('show')
+    })
+    // Remove class for smoothing sizing change after animation has finished
+    slide.mediaElm.addEventListener('transitionend', () => {
+      if (slide.elmClasses) {
+        slide.elmClasses = slide.elmClasses
+          .filter(classText => classText !== 'animate-zoom')
+
+        thisProxy.$forceUpdate() // forceUpdate needed because Vue 2 doesn't support WeakMap reactivity
+      }
+    })
+  }
+
+  const currentSlideId = computed(() => {
+    return currentSlide.value?.id
+  })
+
+  watch(currentSlideId, () => {
+    // wait till new slide has rendered before emitting new slide event
+    nextTick(() => {
+      emitter.emit('newSlideLoaded', currentSlide.value)
+    })
+  })
 
   function emitEventWhenLoaded (slide) {
     const sendEvent = (error) => {
@@ -134,52 +151,29 @@ export default function setup (props, {
     }
   }
 
-  const userInteractHasOccurred = ref(false)
 
-  function logUserInteractionHasOccurred() {
-    userInteractHasOccurred.value = true
-    emitter.off('playRequested', logUserInteractionHasOccurred) 
-    nextTick( // first we need to wait for the new slide elements to be rendered
-      () => nextTick( // then we need to wait for the setup slides function to register the element
-        // Finally our slide object is now different so we need to get the new slide object
-        () => emitter.emit('playRequested', slides.value[currentSlideIndex.value])
-      )
-    )
-  }
-  emitter.on('playRequested', logUserInteractionHasOccurred) 
+  watch(slides, () => {
+    if (slides.value.length > 0 && currentSlideIndex.value === null) {
+      // What has likely happened:
+      // Previously we had no slides, now we do
+      currentSlideIndex.value = 0
+    } else if (slides.value.length > 0 && currentSlideIndex.value >= slides.value.length) {
+      // What has likely happened: 
+      // The number of slides has been reduced but we still have some
+       currentSlideIndex.value = slides.value.length - 1
+    } else if (slides.value.length === 0 && currentSlideIndex.value !== null) {
+      // What has likely happened: 
+      // We use to have some slides but now we have none
+      currentSlideIndex.value = null
+    }
+  })
 
-
-  const slidesNeedRerendering = ref(false)
-  emitter.on('slidesRerenderRequested', () => slidesNeedRerendering.value = true)
   /**
    * Get the subset of the slides which should be rendered to the DOM. For
    * performance reasons only the current slide and a few slides before
    * and after are ever rendered.
    */
   const loadedSlides = computed(function () {
-    // Use slidesNeedRerendering so that loadedSlides is recomputed on change
-    // which triggers a rerender
-    slidesNeedRerendering.value = !slidesNeedRerendering.value && false
-
-    if (currentSlideIndex.value === null) {
-      if (slides.value.length > 0) {
-        currentSlideIndex.value = 0
-      } else {
-        return []
-      }
-    } else {
-      if (slides.value.length > 0) {
-        if (currentSlideIndex.value < 0) {
-          currentSlideIndex.value = 0
-        } else if (currentSlideIndex.value >= slides.value.length) {
-          currentSlideIndex.value = slides.value.length - 1
-        }
-      } else {
-        thisProxy.currentSlideIndex = null
-        return []
-      }
-    }
-  
     const numOfLoadedSlides = Math.min(
       numOfSlides.value,
       maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
@@ -192,22 +186,27 @@ export default function setup (props, {
         arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
       )
       const slide = slides.value[slideIndex]
-      if (!userInteractHasOccurred.value && slide?.type === 'video') {
-        loadedSlides.push({
-          ...slide,
-          id: slide.id + '-stub',
-          elmStyle: {transform: true},
-          type: 'video-first-interaction'
-        })
-      } else {
-        loadedSlides.push(slide)
-      }
+
+      loadedSlides.push(slide)
     }
 
-    // Wait till after render and refs assigned
-    nextTick(() => setupLoadedSlides())
-
     return loadedSlides
+  })
+
+  watch(loadedSlides, () => nextTick(setupLoadedSlides))
+
+  watch(userInteractHasOccurred, () => {
+    for (const slide of loadedSlides.value) {
+      if (slide.mediaLoadingStatus === 'delayed till play') {
+        slide.mediaLoadingStatus = 'not loaded'
+      }
+    }
+    nextTick(() => {
+      // We need to wait till next tick to make sure new mediaElms have been rendered
+      setupLoadedSlides()
+      showLoadingIndicatorIfStuck(currentSlide.value)
+      emitter.emit('playRequested', currentSlide.value)
+    })
   })
 
   const notLoadedSlides = computed(() => {

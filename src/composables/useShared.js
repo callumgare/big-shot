@@ -1,9 +1,34 @@
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick, reactive } from 'vue'
 import mitt from 'mitt'
 
 export default function setup (props) {
+  const emitter = mitt()
+
   const currentSlideIndex = ref(props.slideData?.length > 0 ? 0 : null)
   const showLoadingIndicator = ref(false)
+
+  watch(currentSlideIndex, () => {
+    if (typeof currentSlideIndex.value === "number") {
+      if (currentSlideIndex.value < 0) {
+        console.warn(`currentSlideIndex ("${currentSlideIndex.value}") less than 0`)
+      } else if (currentSlideIndex.value > slides.value.length) {
+        console.warn(`currentSlideIndex ("${currentSlideIndex.value}") appears to be neither greater than the number of slides`)
+      }
+    } else if (currentSlideIndex.value !== null) {
+      console.warn(`currentSlideIndex ("${currentSlideIndex.value}") appears to be neither a number of a null`)
+    }
+  })
+
+  const userInteractHasOccurred = ref(false)
+
+  function logUserInteractionHasOccurred(slide) {
+    userInteractHasOccurred.value = true
+    emitter.off('playRequested', logUserInteractionHasOccurred)
+    nextTick(() => {
+      emitter.emit('playRequested', slide)
+    })
+  }
+  emitter.on('playRequested', logUserInteractionHasOccurred) 
 
   const slidesMap = new WeakMap()
 
@@ -11,14 +36,28 @@ export default function setup (props) {
     const slides = []
     for (const [index, data] of props.slideData.entries()) {
       if (!slidesMap.has(data)) {
+        const type = data?.type || 'image'
         slidesMap.set(data, {
           data,
-          type: data?.type || 'image',
+          type,
+          mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
+          positioning: reactive({
+            scaleMode: undefined,
+          }),
           mediaHeight: undefined,
           mediaWidth: undefined,
           biggerThanContainer: undefined,
           scale: undefined,
-          id: index + Math.random()
+          id: index + Math.random(),
+          elmRef: ref(null),
+          get elm() {
+            return this.elmRef.value
+          },
+          mediaElmRef: ref(null),
+          get mediaElm() {
+            return this.mediaElmRef.value
+          },
+          elmStyleRef: ref(null)
         })
       }
       const slide = slidesMap.get(data)
@@ -59,8 +98,6 @@ export default function setup (props) {
       : ((index % numOfSlides.value) + numOfSlides.value) % numOfSlides.value
   }
 
-  const emitter = mitt()
-
   return {
     showLoadingIndicator,
     currentSlideIndex,
@@ -68,6 +105,7 @@ export default function setup (props) {
     slides,
     numOfSlides,
     wrapIndex,
+    userInteractHasOccurred,
     emitter
   }
 }

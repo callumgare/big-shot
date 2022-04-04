@@ -7,10 +7,11 @@ export default function setup (props, {emitter}) {
    * Toggle between the different zoom levels
    */
   function toggleScaleMode (slide) {
+    const currentScale = slide.positioning.scaleMode
     const newScale = this.nextToggledScaleMode(slide)
 
-    if (slide.scale === newScale) return
-    slide.scale = newScale
+    if (currentScale === newScale) return
+    slide.positioning.scaleMode = newScale
 
     if (slide === this.currentSlide) {
       slide.elmClasses = [
@@ -28,7 +29,7 @@ export default function setup (props, {emitter}) {
 
   function nextToggledScaleMode (slide) {
     if (slide.biggerThanContainer || props.rememberScale === 'contain') {
-      if (slide.scale === 'contain') {
+      if (slide.positioning.scaleMode === 'contain') {
         return 'natural'
       } else {
         return 'contain'
@@ -39,21 +40,24 @@ export default function setup (props, {emitter}) {
   }
 
   function nextToggledScaleModeZoomDirection (slide) {
-    if (slide.scale === this.nextToggledScaleMode(slide)) {
+    const scaleMode = slide.positioning.scaleMode
+    if (scaleMode === this.nextToggledScaleMode(slide)) {
       return null
     }
-    if (slide.scale === 'contain' && this.nextToggledScaleMode(slide) === 'natural') {
+    if (scaleMode === 'contain' && this.nextToggledScaleMode(slide) === 'natural') {
       if (slide.biggerThanContainer) {
         return 'in'
       } else {
         return 'out'
       }
-    } else if (slide.scale === 'natural' && this.nextToggledScaleMode(slide) === 'contain') {
+    } else if (scaleMode === 'natural' && this.nextToggledScaleMode(slide) === 'contain') {
       if (slide.biggerThanContainer) {
         return 'out'
       } else {
         return 'in'
       }
+    } else {
+      console.warn('Unknown scale mode', slide, scaleMode, this.nextToggledScaleMode(slide) )
     }
   }
 
@@ -82,9 +86,9 @@ export default function setup (props, {emitter}) {
    * Extracts certain metadata from slide media
    */
   function saveMediaMetadata (slide) {
-    slide.scale = getInitialScale(slide)
+    slide.positioning.scaleMode = getInitialScale(slide)
     emitter.emit('slideMediaScalingMetadataLoaded', slide)
-    slide.mediaMetadataLoaded = true
+    slide.mediaLoadingStatus = "loaded"
     emitter.emit('slideMediaMetadataLoaded', slide)
   }
 

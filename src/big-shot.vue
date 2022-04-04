@@ -46,67 +46,18 @@
         </div>
       </div>
     </div>
-    <div
+    <template
       v-for="slide in loadedSlides"
       :key="slide.id"
-      :ref="`slide-${slide.id}`"
-      :class="[
-        'slide',
-        {
-          'current': slide.index === currentSlideIndex,
-          'positioned': (slide.elmStyle && slide.elmStyle.transform) || (slide.mediaLoadingFailed)
-        },
-        nextToggledScaleModeZoomDirection(slide) && `zoom-${nextToggledScaleModeZoomDirection(slide)}`,
-        slide.elmClasses
-      ]"
-      :data-slide-index="slide.index"
     >
-      <div
-        v-if="slide.mediaLoadingFailed"
-        class="media media-status"
-      >
-        <span>Failed to load media</span>
-      </div>
-      <img
-        v-else-if="slide.type === 'image'"
-        :src="slide.data.src"
-        class="media"
-        :style="slide.elmStyle"
-      >
-      <template v-else-if="slide.type === 'video'">
-        <video
-          class="media"
-          :style="slide.elmStyle"
-          playsinline
-        >
-          <source
-            :src="slide.data.src"
-            :type="slide.data.mimeType"
-          >
-        </video>
-        <button
-          class="play-button"
-          @click="emitter.emit('playRequested', slide)"
-        >
-          <span>▶</span>
-        </button>
-      </template>
-      <template v-else-if="slide.type === 'video-first-interaction'">
-        <button
-          class="play-button"
-          @click="emitter.emit('playRequested', slide)"
-        >
-          <span>▶</span>
-        </button>
-      </template>
-      <template v-else>
-        <div
-          class="media media-status"
-        >
-          <span>Can't load media type {{ slide.type }}</span>
-        </div>
-      </template>
-    </div>
+      <slide-item
+        :slide="slide"
+        :current-slide-index="currentSlideIndex"
+        :toggled-scale-mode-zoom-direction="slide.positioning.scaleMode && nextToggledScaleModeZoomDirection(slide)"
+        :user-interact-has-occurred="userInteractHasOccurred"
+        :emitter="emitter"
+      />
+    </template>
     <div class="slide-status-indicator">
       <div class="container loop-indicator">
         <RepeatIcon class="icon" />
@@ -132,10 +83,11 @@ import useGestures from './composables/useGestures'
 import useVideoControl from './composables/useVideoControl'
 import RepeatIcon from './assets/icons/repeat.svg'
 import SpinnerIcon from './assets/icons/spinner.svg'
+import SlideItem from './components/slide-item.vue'
 
 export default {
   name: 'BigShot',
-  components: { RepeatIcon, SpinnerIcon },
+  components: { RepeatIcon, SpinnerIcon, SlideItem },
   props: {
     slideData: {
       type: Array,
@@ -167,16 +119,18 @@ export default {
       ...useSlidePositioning(props, shared),
       ...useSlideScaling(props, shared),
       ...useVideoControl(props, shared),
+      log: console.log
     }
   },
   watch: {
     notLoadedSlides: {
       handler() {
         for (const slide of this.notLoadedSlides) {
-          slide.elm = null
-          slide.mediaElm = null
-          slide.elmStyle = null
+          slide.elmRef.value = null
+          slide.mediaElmRef.value = null
+          slide.elmStyleRef.value = null
           slide.elmClasses = null
+          slide.mediaLoadingStatus = "not loaded"
         }
       },
       deep: true
@@ -218,7 +172,7 @@ export default {
         const newBiggerThanContainer = this.naturalSlideSizeBiggerThanContainer(slide)
         if (slide.biggerThanContainer !== newBiggerThanContainer) {
           slide.biggerThanContainer = newBiggerThanContainer
-          slide.scale = this.getInitialScale(slide, true)
+          slide.positioning.scaleMode = this.getInitialScale(slide, true)
         }
       }
       this.positionLoadedSlide(this.currentSlide)
@@ -294,77 +248,6 @@ export default {
           width: fit-content;
         }
       }
-    }
-  }
-
-  .slide {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-
-    .play-button {
-      left: 0;
-      right: 0;
-      margin: auto;
-      padding: 0;
-      top: 0;
-      bottom: 0;
-      height: 80px;
-      width: 80px;
-      position: absolute;
-      background-color: rgb(255 255 255 / 100%);
-      border: none;
-      font-size: 40px;
-      color: #000;
-      border-radius: 40px;
-      visibility: hidden;
-      transform: scale(0.5);
-      opacity: 0%;
-      box-sizing: unset;
-
-      span {
-        transform: translateY(-3px) translateX(3px);
-        display: inline-block;
-        transition: transform 0.3s;
-      }
-
-      &:hover span {
-        transform: translateY(-3px) translateX(10px);
-      }
-
-      &.show {
-        visibility: visible;
-        transform: scale(1);
-        opacity: 100%;
-        transition: transform 0.2s, opacity 0.2s;
-      }
-    }
-
-    .media-status {
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 3em;
-      font-weight: bold;
-      color: #d7a039;
-    }
-
-    &.animate-zoom .media {
-      transition: transform 0.2s;
-    }
-
-    &.zoom-in .media {
-      cursor: zoom-in;
-    }
-
-    &.zoom-out .media {
-      cursor: zoom-out;
-    }
-
-    &:not(.current),
-    &:not(.positioned) {
-      display: none;
     }
   }
 
