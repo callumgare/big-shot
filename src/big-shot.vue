@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    :class="['container', {controlsHidden}]"
+    :class="['container', {'controls-hidden': controlsHidden}]"
   >
     <div class="topbar">
       <div class="left-side">
@@ -239,7 +239,6 @@ export default {
     .center {
       align-self: flex-start;
       flex: 1 2 auto;
-      
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -341,9 +340,9 @@ export default {
     }
   }
 
-  &.controlsHidden {
+  &.controls-hidden {
     .topbar {
-      opacity: 0;
+      opacity: 0%;
       transition: opacity 1s;
     }
   }

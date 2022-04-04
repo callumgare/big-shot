@@ -1,16 +1,26 @@
 <script setup>
-  const {
-    slide,
-    currentSlideIndex,
-    toggledScaleModeZoomDirection,
-    emitter
-  } = defineProps([
-    'slide',
-    'currentSlideIndex',
-    'toggledScaleModeZoomDirection',
-    'userInteractHasOccurred',
-    'emitter'
-  ])
+  defineProps({
+    slide: {
+      type: Object,
+      default: () => ({})
+    },
+    currentSlideIndex: {
+      type: Number,
+      default: () => 0
+    },
+    toggledScaleModeZoomDirection: {
+      type: String,
+      default: () => ""
+    },
+    userInteractHasOccurred: {
+      type: Boolean,
+      default: () => false
+    },
+    emitter: {
+      type: Number,
+      default: () => 0
+    },
+  })
 </script>
 
 <template>
