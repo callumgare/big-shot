@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    class="container"
+    :class="['container', {controlsHidden}]"
   >
     <div class="topbar">
       <div class="left-side">
@@ -79,6 +79,7 @@ import useSlideControl from './composables/useSlideControl'
 import useSlidePositioning from './composables/useSlidePositioning'
 import useSlideScaling from './composables/useSlideScaling'
 import useGestures from './composables/useGestures'
+import useHideControls from './composables/useHideControls'
 import useVideoControl from './composables/useVideoControl'
 import RepeatIcon from './assets/icons/repeat.svg'
 import SpinnerIcon from './assets/icons/spinner.svg'
@@ -118,6 +119,7 @@ export default {
       ...useSlidePositioning(props, shared),
       ...useSlideScaling(props, shared),
       ...useVideoControl(props, shared),
+      ...useHideControls(props, shared),
       log: console.log
     }
   },
@@ -336,6 +338,13 @@ export default {
           transition: transform 1s, opacity 4s 1s, visibility 0s 0.2s;
         }
       }
+    }
+  }
+
+  &.controlsHidden {
+    .topbar {
+      opacity: 0;
+      transition: opacity 1s;
     }
   }
 }

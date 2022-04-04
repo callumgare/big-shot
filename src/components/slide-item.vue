@@ -123,6 +123,10 @@
         transition: transform 0.2s, opacity 0.2s;
       }
     }
+    
+    .media {
+      will-change: transform; 
+    }
 
     .media-status {
       height: 100%;
