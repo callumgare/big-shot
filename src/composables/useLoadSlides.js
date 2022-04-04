@@ -3,7 +3,15 @@ import { ref, computed, onMounted, getCurrentInstance, nextTick, watch } from 'v
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
-export default function setup (props, {emitter, currentSlideIndex, currentSlide, slides, numOfSlides, showLoadingIndicator}) {
+export default function setup (props, {
+  emitter,
+  currentSlideIndex,
+  currentSlide,
+  slides,
+  numOfSlides,
+  showLoadingIndicator,
+  wrapIndex
+}) {
   const thisProxy = getCurrentInstance().proxy
   onMounted(() => {
     setupLoadedSlides()
@@ -180,7 +188,7 @@ export default function setup (props, {emitter, currentSlideIndex, currentSlide,
     const loadedSlides = []
 
     for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
-      const slideIndex = thisProxy.wrapIndex(
+      const slideIndex = wrapIndex(
         arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
       )
       const slide = slides.value[slideIndex]

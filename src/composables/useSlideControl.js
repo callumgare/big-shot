@@ -1,6 +1,12 @@
-import { computed, onMounted, getCurrentInstance } from 'vue'
+import { onMounted, getCurrentInstance } from 'vue'
 
-export default function setup (props, {slides, currentSlideIndex, emitter, showLoadingIndicator}) {
+export default function setup (props, {
+  currentSlideIndex,
+  emitter,
+  showLoadingIndicator,
+  numOfSlides,
+  wrapIndex
+}) {
   onMounted(() => {
     const self = getCurrentInstance()
 
@@ -42,9 +48,9 @@ export default function setup (props, {slides, currentSlideIndex, emitter, showL
 
     await props.beforeSlideChangeHook?.({
       currentIndex: currentSlideIndex.value,
-      newIndex: this.wrapIndex(newIndexWithoutWrap),
+      newIndex: wrapIndex(newIndexWithoutWrap),
       delta,
-      length: this.numOfSlides
+      length: numOfSlides.value
     })
 
     clearTimeout(timeoutId)
@@ -58,7 +64,7 @@ export default function setup (props, {slides, currentSlideIndex, emitter, showL
     // slides
     if (
       newIndexWithoutWrap < 0 ||
-      newIndexWithoutWrap > (this.numOfSlides - 1)
+      newIndexWithoutWrap > (numOfSlides.value - 1)
     ) {
       const loopIndicator = this.$el.querySelector('.loop-indicator')
       if (loopIndicator.classList.contains('animate')) {

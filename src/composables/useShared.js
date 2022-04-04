@@ -48,6 +48,16 @@ export default function setup (props) {
     return props.slideData?.length || 0
   })
 
+  /**
+   * For a given index value check if it's in bounds (i.e. equal to or between
+   * the first and the last slide) and if not then wrap around so it is. For
+   * example -1 will become the index of the last slide.
+   */
+  function wrapIndex (index) {
+    return index >= 0
+      ? index % numOfSlides.value
+      : ((index % numOfSlides.value) + numOfSlides.value) % numOfSlides.value
+  }
 
   const emitter = mitt()
 
@@ -57,6 +67,7 @@ export default function setup (props) {
     currentSlide,
     slides,
     numOfSlides,
+    wrapIndex,
     emitter
   }
 }

@@ -189,17 +189,6 @@ export default {
   },
   methods: {
     /**
-     * For a given index value check if it's in bounds (i.e. equal to or between
-     * the first and the last slide) and if not then wrap around so it is. For
-     * example -1 will become the index of the last slide.
-     */
-    wrapIndex (index) {
-      return index >= 0
-        ? index % this.numOfSlides
-        : ((index % this.numOfSlides) + this.numOfSlides) % this.numOfSlides
-    },
-
-    /**
      * Handler for a key down event.
      */
     keyDownListener (event) {
