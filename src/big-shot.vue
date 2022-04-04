@@ -13,13 +13,12 @@
         </div>
       </div>
       <div class="center">
-        <component
-          :is="plugin.topbarCenterContent"
-          v-for="plugin in plugins?.filter(plugin => plugin.topbarIcon)"
-          :key="plugin.name"
-          v-bind="plugin.topbarCenterContentProps"
-          :current-slide="currentSlide"
-        />
+        <div class="content">
+          <slot
+            name="center-header"
+            :current-slide="currentSlide"
+          />
+        </div>
       </div>
       <div class="right-side">
         <button
@@ -207,13 +206,15 @@ export default {
     font-size: 13px;
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     z-index: 1;
     padding: 2px 20px;
     box-sizing: border-box;
+    flex-wrap: wrap;
+    gap: 1em;
 
     > * {
-      flex: 0 1 auto;
+      flex: 0 0 auto;
       flex-direction: row-reverse;
     }
 
@@ -235,6 +236,16 @@ export default {
 
     .center {
       align-self: flex-start;
+      flex: 1 2 auto;
+      
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      @media (max-width: 600px) {
+        width: 100%;
+        order: 3;
+      }
     }
 
     .right-side {

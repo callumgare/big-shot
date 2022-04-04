@@ -42,7 +42,11 @@ export default {
     :before-slide-change-hook="beforeSlideChangeHook"
     :plugins="plugins"
     @exited="() => showSlideShow = false"
-  />
+  >
+    <template #center-header="{currentSlide}">
+      <h1>{{ currentSlide.data.src }}</h1>
+    </template>
+  </BigShot>
   <button @click="() => showSlideShow = true">
     Open Slide Show
   </button>
