@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import mitt from 'mitt'
 
 export default function setup (props) {
@@ -25,14 +25,19 @@ export default function setup (props) {
       slide.index = index
       slides.push(slide)
     }
+    return slides
+  })
 
-    const currentSlideNewIndex = slides.indexOf(currentSlide.value)
+  watch(slides, (newSlides, oldSlides) => {
+    // We can't use our computed currentSlide here because that would cause
+    // it to re-compute using the new slides and we want to get whatever
+    // value currentSlide before slides was changed
+    const currentSlide = oldSlides?.[currentSlideIndex.value]
+    const currentSlideNewIndex = slides.value.indexOf(currentSlide)
 
     if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
       currentSlideIndex.value = currentSlideNewIndex
-      console.log(currentSlideNewIndex, 'currentSlideNewIndex')
     }
-    return slides
   })
 
   const currentSlide = computed(() => {
