@@ -29,36 +29,32 @@ export default function setup (props, {
     }
   })
 
-  function showLoadingIndicatorIfStuck(slide) {
-    if (showLoadingIndicator.value) {
-      showLoadingIndicator.value = false
+  /**
+   * Get the subset of the slides which should be rendered to the DOM. For
+   * performance reasons only the current slide and a few slides before
+   * and after are ever rendered.
+   */
+  const loadedSlides = computed(function () {
+    const numOfLoadedSlides = Math.min(
+      numOfSlides.value,
+      maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
+    )
+
+    const loadedSlides = []
+
+    for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
+      const slideIndex = wrapIndex(
+        arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
+      )
+      const slide = getSlide(slideIndex)
+
+      loadedSlides.push(slide)
     }
 
-    if (slide.mediaLoadingStatus) {
-      setTimeout(() => {
-        if (
-          currentSlideIndex.value === slide.index &&
-          slide.mediaLoadingStatus !== "loaded"
-        ) {
-          emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
-          emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-          console.warn('new slide hasnt loaded or failed yet so setting loading indicator')
-          showLoadingIndicator.value = true
-        }
-  
-        function removeLoadingIndicator (changedSlide) {
-          if (
-            currentSlideIndex.value === slide.index &&
-            changedSlide.id === slide.id
-          ) {
-            showLoadingIndicator.value = false
-            emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
-            emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
-          }
-        }
-      }, 300)
-    }
-  }
+    return loadedSlides
+  })
+
+  watch(loadedSlides, () => nextTick(setupLoadedSlides))
 
   /**
    * Managers the DOM elements which make up the slide show. Attaches event
@@ -180,33 +176,6 @@ export default function setup (props, {
     }
   })
 
-  /**
-   * Get the subset of the slides which should be rendered to the DOM. For
-   * performance reasons only the current slide and a few slides before
-   * and after are ever rendered.
-   */
-  const loadedSlides = computed(function () {
-    const numOfLoadedSlides = Math.min(
-      numOfSlides.value,
-      maxLoadedPreviousSlides + 1 + maxLoadedNextSlides
-    )
-
-    const loadedSlides = []
-
-    for (let arrayIndex = 0; arrayIndex < numOfLoadedSlides; arrayIndex += 1) {
-      const slideIndex = wrapIndex(
-        arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
-      )
-      const slide = getSlide(slideIndex)
-
-      loadedSlides.push(slide)
-    }
-
-    return loadedSlides
-  })
-
-  watch(loadedSlides, () => nextTick(setupLoadedSlides))
-
   watch(userInteractHasOccurred, () => {
     for (const slide of loadedSlides.value) {
       if (slide.mediaLoadingStatus === 'delayed till play') {
@@ -244,6 +213,37 @@ export default function setup (props, {
       slide.mediaLoadingStatus = "not loaded"
     }
   })
+
+  function showLoadingIndicatorIfStuck(slide) {
+    if (showLoadingIndicator.value) {
+      showLoadingIndicator.value = false
+    }
+
+    if (slide.mediaLoadingStatus) {
+      setTimeout(() => {
+        if (
+          currentSlideIndex.value === slide.index &&
+          slide.mediaLoadingStatus !== "loaded"
+        ) {
+          emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
+          emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+          console.warn('new slide hasnt loaded or failed yet so setting loading indicator')
+          showLoadingIndicator.value = true
+        }
+  
+        function removeLoadingIndicator (changedSlide) {
+          if (
+            currentSlideIndex.value === slide.index &&
+            changedSlide.id === slide.id
+          ) {
+            showLoadingIndicator.value = false
+            emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
+            emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+          }
+        }
+      }, 300)
+    }
+  }
 
   return {
     currentSlideIndex,
