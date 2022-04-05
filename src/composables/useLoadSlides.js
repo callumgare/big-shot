@@ -164,13 +164,17 @@ export default function setup (props, {
     }
   })
 
-  watch(props.slideData, (newSlidesData, oldSlidesData) => {
+
+  watch(() => props.slideData, (newSlidesData, oldSlidesData) => {
     // We can't use our computed currentSlide here because that would cause
     // it to re-compute using the new slides and we want to get whatever
     // value currentSlide before slides was changed
     const currentSlideData = oldSlidesData?.[currentSlideIndex.value]
     const currentSlideNewIndex = newSlidesData.indexOf(currentSlideData)
 
+    // If slide that's currently showing exists in the new set of slides but has a
+    // different index then set the current slide index to this new index so that
+    // we still show the same slide.
     if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
       currentSlideIndex.value = currentSlideNewIndex
     }
