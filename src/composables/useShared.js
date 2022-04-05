@@ -41,23 +41,17 @@ export default function setup (props) {
           data,
           type,
           mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
-          positioning: reactive({
-            scaleMode: undefined,
-          }),
           mediaHeight: undefined,
           mediaWidth: undefined,
           biggerThanContainer: undefined,
           scale: undefined,
           id: index + Math.random(),
-          elmRef: ref(null),
           get elm() {
-            return this.elmRef.value
+            return this.elmRef?.value
           },
-          mediaElmRef: ref(null),
           get mediaElm() {
-            return this.mediaElmRef.value
+            return this.mediaElmRef?.value
           },
-          elmStyleRef: ref(null)
         })
       }
       const slide = slidesMap.get(data)

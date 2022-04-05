@@ -17,8 +17,8 @@
       default: () => false
     },
     emitter: {
-      type: Number,
-      default: () => 0
+      type: Object,
+      default: () => ({})
     },
   })
 </script>

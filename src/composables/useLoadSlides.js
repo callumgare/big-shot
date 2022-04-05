@@ -1,4 +1,4 @@
-import { computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
+import { computed, onMounted, getCurrentInstance, nextTick, watch, ref, reactive } from 'vue'
 import { isIosDevice } from '../utils/browser'
 
 const maxLoadedPreviousSlides = 2
@@ -193,6 +193,24 @@ export default function setup (props, {
     return loadedSlides
   })
 
+
+
+  watch(loadedSlides, () => {
+    for (const slide of loadedSlides.value) {
+      if(!slide.elmRef) {
+        Object.assign(slide, {
+          positioning: reactive({
+            scaleMode: undefined,
+          }),
+          elmStyleRef: ref(null),
+          elmRef: ref(null),
+          mediaElmRef: ref(null),
+        })
+      }
+    }
+
+  })
+
   watch(loadedSlides, () => nextTick(setupLoadedSlides))
 
   watch(userInteractHasOccurred, () => {
@@ -209,15 +227,11 @@ export default function setup (props, {
     })
   })
 
-  const notLoadedSlides = computed(() => {
-    return slides.value
-      .filter(
-        slide => !loadedSlides.value.some(loadedSlide => loadedSlide === slide)
-      )
-  })
+  watch(loadedSlides, (newLoadedSlides, oldLoadedSlides) => {
+    const unloadedSlides = oldLoadedSlides
+      .filter(oldSlide => !newLoadedSlides.includes(oldSlide))
 
-  watch(notLoadedSlides, (notLoadedSlides) => {
-    for (const slide of notLoadedSlides) {
+    for (const slide of unloadedSlides) {
       if (slide.mediaElm) {
         if (slide.mediaElm.src) {
           slide.mediaElm.src = ""
@@ -227,6 +241,13 @@ export default function setup (props, {
           sourceElms.forEach(sourceElm => slide.mediaElm.removeChild(sourceElm))
         }
       }
+      if (slide.elmRef) {
+        slide.elmRef.value = null
+        slide.mediaElmRef.value = null
+        slide.elmStyleRef.value = null
+      }
+      slide.elmClasses = null
+      slide.mediaLoadingStatus = "not loaded"
     }
   })
 
@@ -234,7 +255,6 @@ export default function setup (props, {
     currentSlideIndex,
     slides,
     loadedSlides,
-    notLoadedSlides,
     numOfSlides,
   }
 }

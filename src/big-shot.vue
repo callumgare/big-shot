@@ -123,20 +123,6 @@ export default {
       log: console.log
     }
   },
-  watch: {
-    notLoadedSlides: {
-      handler() {
-        for (const slide of this.notLoadedSlides) {
-          slide.elmRef.value = null
-          slide.mediaElmRef.value = null
-          slide.elmStyleRef.value = null
-          slide.elmClasses = null
-          slide.mediaLoadingStatus = "not loaded"
-        }
-      },
-      deep: true
-    }
-  },
   created () {
     window.addEventListener('keydown', this.keyDownListener)
     window.addEventListener('resize', this.resizeWindowListener)
