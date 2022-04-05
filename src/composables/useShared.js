@@ -11,7 +11,7 @@ export default function setup (props) {
     if (typeof currentSlideIndex.value === "number") {
       if (currentSlideIndex.value < 0) {
         console.warn(`currentSlideIndex ("${currentSlideIndex.value}") less than 0`)
-      } else if (currentSlideIndex.value > slides.value.length) {
+      } else if (currentSlideIndex.value > numOfSlides.value) {
         console.warn(`currentSlideIndex ("${currentSlideIndex.value}") appears to be neither greater than the number of slides`)
       }
     } else if (currentSlideIndex.value !== null) {
@@ -30,51 +30,53 @@ export default function setup (props) {
   }
   emitter.on('playRequested', logUserInteractionHasOccurred) 
 
+  const slideDataToIndexMap = computed(() => {
+    return new WeakMap(
+      Array.from(props.slideData.entries())
+        .map(([index, slideData]) => ([slideData, index]))
+    )
+  })
+
   const slidesMap = new WeakMap()
 
-  const slides = computed(() => {
-    const slides = []
-    for (const [index, data] of props.slideData.entries()) {
-      if (!slidesMap.has(data)) {
-        const type = data?.type || 'image'
-        slidesMap.set(data, {
-          data,
-          type,
-          mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
-          mediaHeight: undefined,
-          mediaWidth: undefined,
-          biggerThanContainer: undefined,
-          scale: undefined,
-          id: index + Math.random(),
-          get elm() {
-            return this.elmRef?.value
-          },
-          get mediaElm() {
-            return this.mediaElmRef?.value
-          },
-        })
-      }
-      const slide = slidesMap.get(data)
-      slide.index = index
-      slides.push(slide)
+  function getSlide(slideIndex) {
+    const data = props.slideData[slideIndex]
+    if (!data) {
+      return null
     }
-    return slides
-  })
-
-  watch(slides, (newSlides, oldSlides) => {
-    // We can't use our computed currentSlide here because that would cause
-    // it to re-compute using the new slides and we want to get whatever
-    // value currentSlide before slides was changed
-    const currentSlide = oldSlides?.[currentSlideIndex.value]
-    const currentSlideNewIndex = slides.value.indexOf(currentSlide)
-
-    if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
-      currentSlideIndex.value = currentSlideNewIndex
+    if (!slidesMap.has(data)) {
+      const type = data?.type || 'image'
+      slidesMap.set(data, {
+        data,
+        type,
+        mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
+        mediaHeight: undefined,
+        mediaWidth: undefined,
+        biggerThanContainer: undefined,
+        scale: undefined,
+        id: slideDataToIndexMap.value.get(data) + Math.random(),
+        positioning: reactive({
+          scaleMode: undefined,
+        }),
+        elmStyleRef: ref(null),
+        elmRef: ref(null),
+        get elm() {
+          return this.elmRef.value
+        },
+        mediaElmRef: ref(null),
+        get mediaElm() {
+          return this.mediaElmRef.value
+        },
+        get index() {
+          return slideDataToIndexMap.value.get(data)
+        }
+      })
     }
-  })
+    return slidesMap.get(data)
+  }
 
   const currentSlide = computed(() => {
-    return slides.value?.[currentSlideIndex.value] ?? null
+    return getSlide(currentSlideIndex.value)
   })
 
   const numOfSlides = computed(() => {
@@ -96,7 +98,7 @@ export default function setup (props) {
     showLoadingIndicator,
     currentSlideIndex,
     currentSlide,
-    slides,
+    getSlide,
     numOfSlides,
     wrapIndex,
     userInteractHasOccurred,

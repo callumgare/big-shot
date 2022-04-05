@@ -1,4 +1,4 @@
-import { computed, onMounted, getCurrentInstance, nextTick, watch, ref, reactive } from 'vue'
+import { computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
 import { isIosDevice } from '../utils/browser'
 
 const maxLoadedPreviousSlides = 2
@@ -8,7 +8,7 @@ export default function setup (props, {
   emitter,
   currentSlideIndex,
   currentSlide,
-  slides,
+  getSlide,
   numOfSlides,
   showLoadingIndicator,
   userInteractHasOccurred,
@@ -152,19 +152,31 @@ export default function setup (props, {
   }
 
 
-  watch(slides, () => {
-    if (slides.value.length > 0 && currentSlideIndex.value === null) {
+  watch(numOfSlides, () => {
+    if (numOfSlides.value > 0 && currentSlideIndex.value === null) {
       // What has likely happened:
       // Previously we had no slides, now we do
       currentSlideIndex.value = 0
-    } else if (slides.value.length > 0 && currentSlideIndex.value >= slides.value.length) {
+    } else if (numOfSlides.value > 0 && currentSlideIndex.value >= numOfSlides.value) {
       // What has likely happened: 
       // The number of slides has been reduced but we still have some
-       currentSlideIndex.value = slides.value.length - 1
-    } else if (slides.value.length === 0 && currentSlideIndex.value !== null) {
+       currentSlideIndex.value = numOfSlides.value - 1
+    } else if (numOfSlides.value === 0 && currentSlideIndex.value !== null) {
       // What has likely happened: 
       // We use to have some slides but now we have none
       currentSlideIndex.value = null
+    }
+  })
+
+  watch(props.slideData, (newSlidesData, oldSlidesData) => {
+    // We can't use our computed currentSlide here because that would cause
+    // it to re-compute using the new slides and we want to get whatever
+    // value currentSlide before slides was changed
+    const currentSlideData = oldSlidesData?.[currentSlideIndex.value]
+    const currentSlideNewIndex = newSlidesData.indexOf(currentSlideData)
+
+    if (currentSlideNewIndex >= 0 && currentSlideNewIndex !== currentSlideIndex.value) {
+      currentSlideIndex.value = currentSlideNewIndex
     }
   })
 
@@ -185,30 +197,12 @@ export default function setup (props, {
       const slideIndex = wrapIndex(
         arrayIndex + currentSlideIndex.value - maxLoadedPreviousSlides
       )
-      const slide = slides.value[slideIndex]
+      const slide = getSlide(slideIndex)
 
       loadedSlides.push(slide)
     }
 
     return loadedSlides
-  })
-
-
-
-  watch(loadedSlides, () => {
-    for (const slide of loadedSlides.value) {
-      if(!slide.elmRef) {
-        Object.assign(slide, {
-          positioning: reactive({
-            scaleMode: undefined,
-          }),
-          elmStyleRef: ref(null),
-          elmRef: ref(null),
-          mediaElmRef: ref(null),
-        })
-      }
-    }
-
   })
 
   watch(loadedSlides, () => nextTick(setupLoadedSlides))
@@ -253,7 +247,6 @@ export default function setup (props, {
 
   return {
     currentSlideIndex,
-    slides,
     loadedSlides,
     numOfSlides,
   }
