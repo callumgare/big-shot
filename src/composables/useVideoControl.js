@@ -9,7 +9,7 @@ export default function setup (props, {
    */
   function playVideo (slide) {
     // Don't do any thing if not a video slide
-    if (slide.type !== "video" || slide.mediaLoadingStatus === "delayed till play") {
+    if (slide.type !== "video" || slide.mediaLoadingStatus === "delayed till play" || slide.mediaLoadingStatus === "failed") {
       return
     }
 

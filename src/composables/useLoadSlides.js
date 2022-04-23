@@ -74,9 +74,9 @@ export default function setup (props, {
         if (slide.type === "video" && !userInteractHasOccurred.value && isIosDevice()) {
           slide.mediaLoadingStatus = "delayed till play"
         } else {
-          if (!slide.mediaElm) {
+          if (!slide.mediaElm && slide.mediaLoadingStatus !== "failed") {
             console.error(`Slide ${slide.index} is a media slide but does not have a media elm ref`)
-          return
+            return
           }
           if (slide.mediaLoadingStatus === "not loaded") {
             slide.mediaLoadingStatus = "loading"
@@ -92,6 +92,9 @@ export default function setup (props, {
     // Wait for DOM to re-render
     await nextTick()
     setupLoadedSlide(slide)
+    if (slide.isCurrent) {
+      emitter.emit('currentSlideChanged', slide)
+    }
   })
 
   function setupSlideMedia(slide) {
@@ -140,16 +143,16 @@ export default function setup (props, {
   }
 
   function emitEventsWhenMediaLoaded (slide) {
-    function sendEvent(error) {
+    function sendEvent(triggeringEvent) {
       removeEventListeners()
 
       slide.mediaLoadingStatus = "loaded"
 
-      if (error) {
-        error.slide = slide
-        console.error(error)
-        slide.events.emit('mediaFailedToLoad', error)
-        emitter.emit('slideMediaFailedToLoad', error)
+      if ((triggeringEvent instanceof ErrorEvent) || (triggeringEvent?.type === "error")) {
+        triggeringEvent.slide = slide
+        console.error(`An error occured loading ${slide.index}`, triggeringEvent)
+        slide.events.emit('mediaFailedToLoad', triggeringEvent)
+        emitter.emit('slideMediaFailedToLoad', triggeringEvent)
       } else {
         slide.events.emit('mediaLoaded')
         emitter.emit('slideMediaLoaded', slide)
@@ -166,18 +169,24 @@ export default function setup (props, {
 
     function removeEventListeners() {
       clearInterval(intervalId)
-      slide.mediaElm.removeEventListener('load', sendEvent)
-      slide.mediaElm.removeEventListener('loadedmetadata', sendEvent)
-      slide.mediaElm.removeEventListener('error', sendEvent)
+      slide.mediaElm?.removeEventListener('load', sendEvent)
+      slide.mediaElm?.removeEventListener('loadedmetadata', sendEvent)
+      slide.mediaElm?.removeEventListener('error', sendEvent)
+      for (const sourceElm of slide.mediaElm?.querySelectorAll('source') || []) {
+        sourceElm.removeEventListener('error', sendEvent)
+      }
     }
 
     const intervalId = setInterval(manuallyCheckIfLoaded, 100);
     // Used by images, however for things like gifs this will only fire after the whole
     // gif has been loaded not, on first render so manuallyCheckIfLoaded() will likely be quicker.
     slide.mediaElm.addEventListener('load', sendEvent)
-      // Used by videos
+    // Used by videos
     slide.mediaElm.addEventListener('loadedmetadata', sendEvent)
-      // Used by both
+    for (const sourceElm of slide.mediaElm.querySelectorAll('source')) {
+      sourceElm.addEventListener('error', sendEvent)
+    }
+    // Used by both
     slide.mediaElm.addEventListener('error', sendEvent)
     manuallyCheckIfLoaded();
   }
