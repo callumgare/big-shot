@@ -124,28 +124,49 @@ export default function setup (props, {
   })
 
   function emitEventWhenLoaded (slide) {
-    const sendEvent = (error) => {
-      // Check that slide hasn't been unloaded in the mean time
-      if (!slide.elm || !document.body.contains(slide.elm)) {
-        return
-      }
+    function sendEvent(error) {
+      removeEventListeners()
+
       if (error) {
         error.slide = slide
+        console.error(error)
         emitter.emit('slideMediaFailedToLoad', error)
       } else {
         emitter.emit('slideMediaLoaded', slide)
       }
     }
-    if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {
-      sendEvent()
-    } else {
-      // Used by images
-      slide.mediaElm.addEventListener('load', () => sendEvent())
-      // Used by videos
-      slide.mediaElm.addEventListener('loadedmetadata', () => sendEvent())
-      // Used by both
-      slide.mediaElm.addEventListener('error', (error) => sendEvent(error))
+
+    function manuallyCheckIfLoaded() {
+      if (slide.mediaElm.naturalHeight || slide.mediaElm.readyState >= 1) {
+        sendEvent()
+      }
     }
+
+    function handleSlideUnload(slideBeingUnloaded) {
+      if (slideBeingUnloaded === slide) {
+        removeEventListeners()
+      }
+    }
+
+    emitter.on('beforeSlideUnload', handleSlideUnload)
+
+    function removeEventListeners() {
+      clearInterval(intervalId)
+      slide.mediaElm.removeEventListener('load', sendEvent)
+      slide.mediaElm.removeEventListener('loadedmetadata', sendEvent)
+      slide.mediaElm.removeEventListener('error', sendEvent)
+      emitter.off('beforeSlideUnload', handleSlideUnload)
+    }
+
+    let intervalId = setInterval(manuallyCheckIfLoaded, 100);
+    // Used by images, however for things like gifs this will only fire after the whole
+    // gif has been loaded not, on first render so manuallyCheckIfLoaded() will likely be quicker.
+    slide.mediaElm.addEventListener('load', sendEvent)
+      // Used by videos
+    slide.mediaElm.addEventListener('loadedmetadata', sendEvent)
+      // Used by both
+    slide.mediaElm.addEventListener('error', sendEvent)
+    manuallyCheckIfLoaded();
   }
 
 
@@ -155,11 +176,11 @@ export default function setup (props, {
       // Previously we had no slides, now we do
       currentSlideIndex.value = 0
     } else if (numOfSlides.value > 0 && currentSlideIndex.value >= numOfSlides.value) {
-      // What has likely happened: 
+      // What has likely happened:
       // The number of slides has been reduced but we still have some
        currentSlideIndex.value = numOfSlides.value - 1
     } else if (numOfSlides.value === 0 && currentSlideIndex.value !== null) {
-      // What has likely happened: 
+      // What has likely happened:
       // We use to have some slides but now we have none
       currentSlideIndex.value = null
     }
@@ -235,7 +256,7 @@ export default function setup (props, {
           console.warn('new slide hasnt loaded or failed yet so setting loading indicator')
           showLoadingIndicator.value = true
         }
-  
+
         function removeLoadingIndicator (changedSlide) {
           if (
             currentSlideIndex.value === slide.index &&
