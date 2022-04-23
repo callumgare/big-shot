@@ -1,4 +1,7 @@
 export function isIosDevice() {
+  if (typeof document === 'undefined') {
+    return false
+  }
   return [
     'iPad Simulator',
     'iPhone Simulator',

@@ -24,7 +24,9 @@ export default function setup () {
     startTimer()
   }
 
-  document.addEventListener('pointermove', resetTimer)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('pointermove', resetTimer)
+  }
 
   startTimer()
 

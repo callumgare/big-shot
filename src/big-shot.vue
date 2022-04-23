@@ -27,7 +27,7 @@
         >
           X
         </button>
-        <div 
+        <div
           v-for="plugin in plugins?.filter(plugin => plugin.topbarIcon)"
           :key="plugin.name"
           class="plugin"
@@ -124,9 +124,11 @@ export default {
     }
   },
   created () {
-    window.addEventListener('keydown', this.keyDownListener)
-    window.addEventListener('resize', this.resizeWindowListener)
-    window.addEventListener('orientationchange', this.resizeWindowListener)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', this.keyDownListener)
+      window.addEventListener('resize', this.resizeWindowListener)
+      window.addEventListener('orientationchange', this.resizeWindowListener)
+    }
   },
   methods: {
     /**
