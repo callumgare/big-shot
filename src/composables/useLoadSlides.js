@@ -24,12 +24,6 @@ export default function setup (props, {
     error.slide.mediaLoadingStatus = "failed"
   })
 
-  emitter.on('newSlideLoaded', (slide) => {
-    if (slide.mediaLoadingStatus === "loading") {
-      showLoadingIndicatorIfStuck(slide)
-    }
-  })
-
   /**
    * Get the subset of the slides which should be rendered to the DOM. For
    * performance reasons only the current slide and a few slides before
@@ -90,7 +84,7 @@ export default function setup (props, {
   }
 
   function setupSlideMedia(slide) {
-    emitEventWhenLoaded(slide)
+    emitEventWhenMediaLoaded(slide)
 
     slide.mediaElm.addEventListener('click', () => {
       thisProxy.toggleScaleMode(currentSlide.value)
@@ -123,7 +117,7 @@ export default function setup (props, {
     })
   })
 
-  function emitEventWhenLoaded (slide) {
+  function emitEventWhenMediaLoaded (slide) {
     function sendEvent(error) {
       removeEventListeners()
 
@@ -152,6 +146,8 @@ export default function setup (props, {
 
     function removeEventListeners() {
       clearInterval(intervalId)
+      clearTimeout(slowLoadTimeoutId)
+      clearTimeout(verySlowLoadTimeoutId)
       slide.mediaElm.removeEventListener('load', sendEvent)
       slide.mediaElm.removeEventListener('loadedmetadata', sendEvent)
       slide.mediaElm.removeEventListener('error', sendEvent)
@@ -168,6 +164,11 @@ export default function setup (props, {
     slide.mediaElm.addEventListener('error', sendEvent)
     manuallyCheckIfLoaded();
   }
+
+  emitter.on(
+    'mediaVerySlowToLoad',
+    (slide) => console.warn("Media has taken longer than 10 seconds to load. Index:", slide.index)
+  )
 
 
   watch(numOfSlides, () => {
@@ -211,7 +212,6 @@ export default function setup (props, {
     nextTick(() => {
       // We need to wait till next tick to make sure new mediaElms have been rendered
       setupLoadedSlides()
-      showLoadingIndicatorIfStuck(currentSlide.value)
       emitter.emit('playRequested', currentSlide.value)
     })
   })
@@ -240,36 +240,22 @@ export default function setup (props, {
     }
   })
 
-  function showLoadingIndicatorIfStuck(slide) {
-    if (showLoadingIndicator.value) {
-      showLoadingIndicator.value = false
+  emitter.on('mediaSlowToLoad', (slide) => {
+    if (slide.isCurrent) {
+      showLoadingIndicator.value = true
+
+      emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
+      emitter.on('slideMediaLoaded', removeLoadingIndicator)
     }
 
-    if (slide.mediaLoadingStatus) {
-      setTimeout(() => {
-        if (
-          currentSlideIndex.value === slide.index &&
-          slide.mediaLoadingStatus !== "loaded"
-        ) {
-          emitter.on('slideMediaMetadataLoaded', removeLoadingIndicator)
-          emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-          console.warn('new slide hasnt loaded or failed yet so setting loading indicator')
-          showLoadingIndicator.value = true
-        }
-
-        function removeLoadingIndicator (changedSlide) {
-          if (
-            currentSlideIndex.value === slide.index &&
-            changedSlide.id === slide.id
-          ) {
-            showLoadingIndicator.value = false
-            emitter.off('slideMediaMetadataLoaded', removeLoadingIndicator)
-            emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
-          }
-        }
-      }, 300)
+    function removeLoadingIndicator (changedSlide) {
+      if (slide.isCurrent && slide === changedSlide) {
+        showLoadingIndicator.value = false
+        emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
+        emitter.off('slideMediaLoaded', removeLoadingIndicator)
+      }
     }
-  }
+  })
 
   return {
     currentSlideIndex,
