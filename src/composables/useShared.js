@@ -107,7 +107,8 @@ export default function setup (props) {
         },
         get isCurrent() {
           return this.index === currentSlideIndex.value
-        }
+        },
+        events: mitt()
       })
       idCounter.value = idCounter.value + 1
     }

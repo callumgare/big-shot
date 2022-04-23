@@ -82,9 +82,9 @@ export default function setup (props, {
     });
   }
 
-  emitter.on('newSlideLoaded', (slide) => {
-    playVideo(slide)
-    setupPlayButton(slide)
+  emitter.on('currentSlideChanged', (newCurrentSlide) => {
+    playVideo(newCurrentSlide)
+    setupPlayButton(newCurrentSlide)
   })
   emitter.on('unloadSlide', pauseVideo)
   emitter.on('playRequested', playVideo)

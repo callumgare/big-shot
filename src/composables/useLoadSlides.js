@@ -84,7 +84,8 @@ export default function setup (props, {
   }
 
   function setupSlideMedia(slide) {
-    emitEventWhenMediaLoaded(slide)
+    emitEventsWhenMediaLoaded(slide)
+    showWarningIfMediaLoadingVerySlow(slide)
 
     slide.mediaElm.addEventListener('click', () => {
       thisProxy.toggleScaleMode(currentSlide.value)
@@ -113,19 +114,33 @@ export default function setup (props, {
   watch(currentSlideId, () => {
     // wait till new slide has rendered before emitting new slide event
     nextTick(() => {
-      emitter.emit('newSlideLoaded', currentSlide.value)
+      currentSlide.value.events.emit('isCurrent')
+      emitter.emit('currentSlideChanged', currentSlide.value)
     })
   })
 
-  function emitEventWhenMediaLoaded (slide) {
+  function whenMediaStoppedLoading (slide, handler) {
+    if (slide.mediaLoadingStatus === "loaded" || slide.mediaLoadingStatus === "failed") {
+      handler()
+    } else {
+      slide.events.on('mediaLoaded', handler)
+      slide.events.on('mediaFailedToLoad', handler)
+    }
+  }
+
+  function emitEventsWhenMediaLoaded (slide) {
     function sendEvent(error) {
       removeEventListeners()
+
+      slide.mediaLoadingStatus = "loaded"
 
       if (error) {
         error.slide = slide
         console.error(error)
+        slide.events.emit('mediaFailedToLoad', error)
         emitter.emit('slideMediaFailedToLoad', error)
       } else {
+        slide.events.emit('mediaLoaded')
         emitter.emit('slideMediaLoaded', slide)
       }
     }
@@ -136,25 +151,16 @@ export default function setup (props, {
       }
     }
 
-    function handleSlideUnload(slideBeingUnloaded) {
-      if (slideBeingUnloaded === slide) {
-        removeEventListeners()
-      }
-    }
-
-    emitter.on('beforeSlideUnload', handleSlideUnload)
+    slide.events.on('beforeSlideUnload', removeEventListeners)
 
     function removeEventListeners() {
       clearInterval(intervalId)
-      clearTimeout(slowLoadTimeoutId)
-      clearTimeout(verySlowLoadTimeoutId)
       slide.mediaElm.removeEventListener('load', sendEvent)
       slide.mediaElm.removeEventListener('loadedmetadata', sendEvent)
       slide.mediaElm.removeEventListener('error', sendEvent)
-      emitter.off('beforeSlideUnload', handleSlideUnload)
     }
 
-    let intervalId = setInterval(manuallyCheckIfLoaded, 100);
+    const intervalId = setInterval(manuallyCheckIfLoaded, 100);
     // Used by images, however for things like gifs this will only fire after the whole
     // gif has been loaded not, on first render so manuallyCheckIfLoaded() will likely be quicker.
     slide.mediaElm.addEventListener('load', sendEvent)
@@ -165,10 +171,35 @@ export default function setup (props, {
     manuallyCheckIfLoaded();
   }
 
-  emitter.on(
-    'mediaVerySlowToLoad',
-    (slide) => console.warn("Media has taken longer than 10 seconds to load. Index:", slide.index)
-  )
+  function setLoadingTimeout(slide, handler, timeoutTime) {
+    const timeoutId = setTimeout(handler, timeoutTime);
+
+    whenMediaStoppedLoading(slide, () => clearTimeout(timeoutId))
+    slide.events.on('beforeSlideUnload', () => clearTimeout(timeoutId))
+  }
+
+
+  // Show loading indicator if slide media hasn't loaded after a certain amount of time
+  emitter.on('currentSlideChanged', slide => {
+    setLoadingTimeout(slide, () => {
+      if (slide.isCurrent) {
+        showLoadingIndicator.value = true
+      }
+    }, 300)
+
+    whenMediaStoppedLoading(slide, () => {
+      if (slide.isCurrent) {
+        showLoadingIndicator.value = false
+      }
+    })
+  })
+
+  function showWarningIfMediaLoadingVerySlow(slide) {
+    setLoadingTimeout(slide, () => {
+      console.warn("Media has taken longer than 10 seconds to load. Index:", slide.index)
+      showWarningIfMediaLoadingVerySlow(slide)
+    }, 10 * 1000)
+  }
 
 
   watch(numOfSlides, () => {
@@ -221,6 +252,8 @@ export default function setup (props, {
       .filter(oldSlide => !newLoadedSlides.includes(oldSlide))
 
     for (const slide of unloadedSlides) {
+      slide.events.emit('beforeSlideUnload')
+      emitter.emit('beforeSlideUnload', slide)
       if (slide.mediaElm) {
         if (slide.mediaElm.src) {
           slide.mediaElm.src = ""
@@ -237,23 +270,10 @@ export default function setup (props, {
       }
       slide.elmClasses = null
       slide.mediaLoadingStatus = "not loaded"
-    }
+      nextTick(() => {
+        slide.events.emit('slideUnloaded')
+        slide.events.off('*')
   })
-
-  emitter.on('mediaSlowToLoad', (slide) => {
-    if (slide.isCurrent) {
-      showLoadingIndicator.value = true
-
-      emitter.on('slideMediaFailedToLoad', removeLoadingIndicator)
-      emitter.on('slideMediaLoaded', removeLoadingIndicator)
-    }
-
-    function removeLoadingIndicator (changedSlide) {
-      if (slide.isCurrent && slide === changedSlide) {
-        showLoadingIndicator.value = false
-        emitter.off('slideMediaFailedToLoad', removeLoadingIndicator)
-        emitter.off('slideMediaLoaded', removeLoadingIndicator)
-      }
     }
   })
 
