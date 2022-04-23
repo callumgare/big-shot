@@ -12,7 +12,8 @@ export default function setup (props, {
   numOfSlides,
   showLoadingIndicator,
   userInteractHasOccurred,
-  wrapIndex
+  wrapIndex,
+  slideData
 }) {
   const thisProxy = getCurrentInstance().proxy
   onMounted(() => {
@@ -165,7 +166,7 @@ export default function setup (props, {
   })
 
 
-  watch(() => props.slideData, (newSlidesData, oldSlidesData) => {
+  watch(slideData, (newSlidesData, oldSlidesData) => {
     // We can't use our computed currentSlide here because that would cause
     // it to re-compute using the new slides and we want to get whatever
     // value currentSlide before slides was changed
