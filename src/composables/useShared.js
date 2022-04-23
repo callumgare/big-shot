@@ -5,6 +5,7 @@ export default function setup (props) {
   const emitter = mitt()
 
   const currentSlideIndex = ref(props.slideData?.length > 0 ? 0 : null)
+  const idCounter = ref(0)
   const showLoadingIndicator = ref(false)
 
   watch(currentSlideIndex, () => {
@@ -54,7 +55,7 @@ export default function setup (props) {
         mediaWidth: undefined,
         biggerThanContainer: undefined,
         scale: undefined,
-        id: slideDataToIndexMap.value.get(data) + Math.random(),
+        id: idCounter.value,
         positioning: reactive({
           scaleMode: undefined,
         }),
@@ -71,6 +72,7 @@ export default function setup (props) {
           return slideDataToIndexMap.value.get(data)
         }
       })
+      idCounter.value = idCounter.value + 1
     }
     return slidesMap.get(data)
   }
