@@ -84,7 +84,7 @@ export default function setup (props) {
       const slide = reactive({
         data,
         type,
-        mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
+        mediaLoadingStatus: (type === "video" || type === "image") ? "not loaded" : null,
         mediaHeight: undefined,
         mediaWidth: undefined,
         biggerThanContainer: undefined,

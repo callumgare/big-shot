@@ -46,6 +46,7 @@
       class="media media-status"
     >
       <span>Failed to load media</span>
+      <button @click="emitter.emit('retryLoadingMedia', slide)">Retry</button>
     </div>
     <img
       v-else-if="slide.type === 'image'"
@@ -136,9 +137,9 @@
         transition: transform 0.2s, opacity 0.2s;
       }
     }
-    
+
     .media {
-      will-change: transform; 
+      will-change: transform;
     }
 
     .media-status {
@@ -146,6 +147,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
+      gap: 0.5em;
       font-size: 3em;
       font-weight: bold;
       color: #d7a039;

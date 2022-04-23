@@ -58,9 +58,14 @@ export default function setup (props, {
    */
   function setupLoadedSlides () {
     for (const slide of loadedSlides.value) {
+      setupLoadedSlide (slide)
+    }
+  }
+
+  function setupLoadedSlide (slide) {
       if (!slide.elm) {
         console.warn(`Slide ${slide.index} is in loadedSlides but does not have an elm ref`, slide, slide.elm)
-        continue
+      return
       }
 
       if (slide.mediaLoadingStatus) {
@@ -71,17 +76,23 @@ export default function setup (props, {
         } else {
           if (!slide.mediaElm) {
             console.error(`Slide ${slide.index} is a media slide but does not have a media elm ref`)
-            continue
+          return
           }
           if (slide.mediaLoadingStatus === "not loaded") {
             slide.mediaLoadingStatus = "loading"
             setupSlideMedia(slide)
           }
         }
-
       }
     }
-  }
+
+  emitter.on('retryLoadingMedia', async (slide) => {
+    console.log('attempting to reload', slide.index, slide.isCurrent)
+    slide.mediaLoadingStatus = "not loaded"
+    // Wait for DOM to re-render
+    await nextTick()
+    setupLoadedSlide(slide)
+  })
 
   function setupSlideMedia(slide) {
     emitEventsWhenMediaLoaded(slide)
