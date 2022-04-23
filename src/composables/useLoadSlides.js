@@ -263,11 +263,6 @@ export default function setup (props, {
           sourceElms.forEach(sourceElm => slide.mediaElm.removeChild(sourceElm))
         }
       }
-      if (slide.elmRef) {
-        slide.elmRef.value = null
-        slide.mediaElmRef.value = null
-        slide.elmStyleRef.value = null
-      }
       slide.elmClasses = null
       slide.mediaLoadingStatus = "not loaded"
       nextTick(() => {

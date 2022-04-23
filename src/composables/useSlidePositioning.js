@@ -7,7 +7,7 @@ export default function setup (props, {emitter}) {
   function positionLoadedSlide (slide) {
     // Trying to position the slide but we don't know how big it is. This function
     // will be called again when the media has finished loading so at which point
-    // we should know the size so we can just return now and expect to be called 
+    // we should know the size so we can just return now and expect to be called
     // later.
     try {
       getSlideDimensions (slide)
@@ -16,8 +16,8 @@ export default function setup (props, {emitter}) {
     }
     const transformFunctions = getPositionForLoadedSlide(slide)
 
-    slide.elmStyleRef.value = {
-      ...slide.elmStyleRef.value,
+    slide.elmStyle = {
+      ...slide.elmStyle,
       ...{ transform: transformFunctions.join(' ') }
     }
   }

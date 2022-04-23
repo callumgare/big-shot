@@ -21,17 +21,20 @@
       default: () => ({})
     },
   })
+
+  const setElm = (slide, elm) => slide.elm = elm
+  const setMediaElm = (slide, elm) => slide.mediaElm = elm
 </script>
 
 <template>
   <div
-    :ref="slide.elmRef"
+    :ref="elm => setElm(slide, elm)"
     :class="[
       'slide',
       {
         'current': slide.index === currentSlideIndex,
         'has-media': slide.mediaLoadingStatus && slide.mediaLoadingStatus !== 'failed' && slide.mediaLoadingStatus !== 'delayed till play',
-        'positioned': (slide.elmStyleRef.value && slide.elmStyleRef.value.transform)
+        'positioned': (slide.elmStyle && slide.elmStyle.transform)
       },
       toggledScaleModeZoomDirection && `zoom-${toggledScaleModeZoomDirection}`,
       slide.elmClasses
@@ -46,10 +49,10 @@
     </div>
     <img
       v-else-if="slide.type === 'image'"
-      :ref="slide.mediaElmRef"
+      :ref="elm => setMediaElm(slide, elm)"
       :src="slide.data.src"
       class="media"
-      :style="slide.elmStyleRef.value"
+      :style="slide.elmStyle"
       loading="eager"
     >
     <template v-else-if="slide.type === 'video' && slide.mediaLoadingStatus === 'delayed till play'">
@@ -62,9 +65,9 @@
     </template>
     <template v-else-if="slide.type === 'video'">
       <video
-        :ref="slide.mediaElmRef"
+        :ref="elm => setMediaElm(slide, elm)"
         class="media"
-        :style="slide.elmStyleRef.value"
+        :style="slide.elmStyle"
         playsinline
         :preload="slide.index >= currentSlideIndex ? 'auto' : 'metadata'"
       >

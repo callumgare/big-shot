@@ -80,8 +80,8 @@ export default function setup (props) {
       return null
     }
     if (!slidesMap.has(data)) {
-      const type = data?.type || 'image'
-      slidesMap.set(data, {
+      const type = data?.type || (data.src && 'image') || undefined
+      const slide = reactive({
         data,
         type,
         mediaLoadingStatus: type === "video" || type === "image" ? "not loaded" : null,
@@ -90,18 +90,12 @@ export default function setup (props) {
         biggerThanContainer: undefined,
         scale: undefined,
         id: idCounter.value,
-        positioning: reactive({
+        positioning: {
           scaleMode: undefined,
-        }),
-        elmStyleRef: ref(null),
-        elmRef: ref(null),
-        get elm() {
-          return this.elmRef.value
         },
-        mediaElmRef: ref(null),
-        get mediaElm() {
-          return this.mediaElmRef.value
-        },
+        elmStyle: null,
+        elm: null,
+        mediaElm: null,
         get index() {
           return slideDataToIndexMap.value.get(data)
         },
@@ -111,6 +105,7 @@ export default function setup (props) {
         events: mitt()
       })
       idCounter.value = idCounter.value + 1
+      slidesMap.set(data, slide)
     }
     return slidesMap.get(data)
   }
