@@ -1,4 +1,4 @@
-export default function setup (props, {
+export default function setup ({
   emitter,
   currentSlide,
   showLoadingIndicator,

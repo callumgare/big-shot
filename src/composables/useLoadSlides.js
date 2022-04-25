@@ -1,10 +1,10 @@
 import { computed, onMounted, getCurrentInstance, nextTick, watch } from 'vue'
-import { isIosDevice } from '../utils/browser'
+import { isIosDevice, onDoubleClick } from '../utils/browser'
 
 const maxLoadedPreviousSlides = 2
 const maxLoadedNextSlides = 3
 
-export default function setup (props, {
+export default function setup ({
   emitter,
   currentSlideIndex,
   currentSlide,
@@ -101,7 +101,7 @@ export default function setup (props, {
     emitEventsWhenMediaLoaded(slide)
     showWarningIfMediaLoadingVerySlow(slide)
 
-    slide.mediaElm.addEventListener('click', () => {
+    onDoubleClick(slide.mediaElm, () => {
       thisProxy.toggleScaleMode(currentSlide.value)
     })
     slide.mediaElm.addEventListener('play', () => {

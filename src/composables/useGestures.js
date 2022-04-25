@@ -1,7 +1,8 @@
 import { onMounted, getCurrentInstance } from 'vue'
 import HammerJS from 'hammerjs'
+import { onSingleClick } from '../utils/browser'
 
-export default function setup () {
+export default function setup ({emitter}) {
   onMounted(() => {
     const self = getCurrentInstance()
     const containerGestures = new HammerJS(self.proxy.$el, {})
@@ -12,5 +13,7 @@ export default function setup () {
         self.proxy.previousSlide()
       }
     })
+
+    onSingleClick(self.proxy.$el, (event) => emitter.emit('containerSingleClicked', event))
   })
 }

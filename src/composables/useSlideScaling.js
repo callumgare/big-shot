@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-export default function setup (props, {emitter}) {
+export default function setup ({props, emitter}) {
   const currentScalePreference = ref(undefined)
 
   /**

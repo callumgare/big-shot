@@ -107,19 +107,19 @@ export default {
     },
   },
   setup (props) {
-    useGestures()
 
     const shared = useShared(props)
 
     return {
       SpinnerIcon,
       ...shared,
-      ...useLoadSlides(props, shared),
-      ...useSlideControl(props, shared),
-      ...useSlidePositioning(props, shared),
-      ...useSlideScaling(props, shared),
-      ...useVideoControl(props, shared),
-      ...useHideControls(props, shared),
+      ...useGestures(shared),
+      ...useLoadSlides(shared),
+      ...useSlideControl(shared),
+      ...useSlidePositioning(shared),
+      ...useSlideScaling(shared),
+      ...useVideoControl(shared),
+      ...useHideControls(shared),
       log: console.log
     }
   },
@@ -331,7 +331,7 @@ export default {
   &.controls-hidden {
     .topbar {
       opacity: 0%;
-      transition: opacity 1s;
+      transition: opacity 0.5s;
     }
   }
 }

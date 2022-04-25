@@ -1,34 +1,30 @@
 import { ref } from "vue"
 
-export default function setup () {
+export default function setup ({emitter}) {
   const controlsHidden = ref(false)
-  const timer = ref(null)
 
-  function startTimer() {
-    timer.value = setTimeout(() => {
-      controlsHidden.value = true
-    }, 2 * 1000)
-  }
-
-  function clearTimer() {
-    if (timer.value) {
-      clearTimeout(timer.value)
-    }
-    if (controlsHidden.value) {
-      controlsHidden.value = false
-    }
-  }
-
-  function resetTimer() {
-    clearTimer()
-    startTimer()
-  }
+  let lastInputFocusoutEvent = -999
 
   if (typeof document !== 'undefined') {
-    document.addEventListener('pointermove', resetTimer)
+    document.addEventListener('focusout', (event) => {
+      if (event.target.tagName === 'INPUT') {
+        lastInputFocusoutEvent = event.timeStamp
+      }
+      console.log('focusout', event.target)
+    })
   }
 
-  startTimer()
+  emitter.on('containerSingleClicked', (event) => {
+    if (
+      ["SUMMARY", "BUTTON", "A", "INPUT"].includes(event.target.tagName) ||
+      // If a focusout event occured recently the user was probably clicking in
+      // blank space to clear focus from something
+      event.timeStamp < (lastInputFocusoutEvent + 200)
+    ) {
+      return
+    }
+    controlsHidden.value = !controlsHidden.value
+  })
 
   return {controlsHidden}
 }

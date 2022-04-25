@@ -1,4 +1,4 @@
-export default function setup (props, {emitter}) {
+export default function setup ({emitter}) {
   /**
   * Positions on the page the media of the current slide. This involves both
   * shifting and scaling the DOM element based on the dimensions of the media

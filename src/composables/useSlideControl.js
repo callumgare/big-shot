@@ -1,6 +1,7 @@
 import { onMounted, getCurrentInstance } from 'vue'
 
-export default function setup (props, {
+export default function setup ({
+  props,
   currentSlideIndex,
   emitter,
   showLoadingIndicator,
