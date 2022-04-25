@@ -128,8 +128,11 @@ export default function setup (props, {
   watch(currentSlideId, () => {
     // wait till new slide has rendered before emitting new slide event
     nextTick(() => {
-      currentSlide.value.events.emit('isCurrent')
-      emitter.emit('currentSlideChanged', currentSlide.value)
+      // current slide could be null if we have no slides
+      if (currentSlide.value) {
+        currentSlide.value.events.emit('isCurrent')
+        emitter.emit('currentSlideChanged', currentSlide.value)
+      }
     })
   })
 
