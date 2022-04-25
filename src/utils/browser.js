@@ -14,6 +14,12 @@ export function isIosDevice() {
   || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
 }
 
+let timeOfLastClickdown = -999
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', (event) => timeOfLastClickdown = event.timeStamp)
+}
+
 export function onDoubleClick(element, handler) {
   if (isIosDevice()) {
     onClickIOS(element, (event, numOfClicks) => {
@@ -41,6 +47,10 @@ export function onSingleClick(element, handler) {
   }
   element.addEventListener('click', (event) => {
     if (event.detail > 1) {
+      return
+    }
+    // Don't count clicks where the user held the pointer down for a while
+    if (event.timeStamp > (timeOfLastClickdown + 800)) {
       return
     }
     const timeoutId = setTimeout(() => {
