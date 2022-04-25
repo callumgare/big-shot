@@ -46,7 +46,9 @@
       class="media media-status"
     >
       <span>Failed to load media</span>
-      <button @click="emitter.emit('retryLoadingMedia', slide)">Retry</button>
+      <button @click="emitter.emit('retryLoadingMedia', slide)">
+        Retry
+      </button>
     </div>
     <img
       v-else-if="slide.type === 'image'"

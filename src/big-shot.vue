@@ -186,22 +186,21 @@ export default {
   z-index: 10;
 
   .topbar {
-    background-color: rgb(0 0 0 / 30%);
     position: absolute;
     left: 0;
     top: 0;
     height: 44px;
     width: 100%;
-    opacity: 75%;
     font-size: 13px;
     display: flex;
     justify-content: space-between;
     align-items: baseline;
     z-index: 1;
-    padding: 2px 20px;
+    padding: 0 20px;
     box-sizing: border-box;
     flex-wrap: wrap;
     gap: 1em;
+    text-shadow: #00000082 1px 1px 3px, #00000082 -1px -1px 3px;
 
     > * {
       flex: 0 0 auto;
@@ -332,6 +331,7 @@ export default {
     .topbar {
       opacity: 0%;
       transition: opacity 0.5s;
+      pointer-events: none;
     }
   }
 }
