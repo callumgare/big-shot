@@ -47,6 +47,9 @@
     if (videoJS.value) {
       if (props.active) {
         videoJS.value.play()
+        if (videoJS.value.error()) {
+          setTimeout(() => emit('playFinished'), 3000)
+        }
       } else {
         videoJS.value.pause()
       }
@@ -82,6 +85,12 @@
     }
   }
 
+  function emitOnError() {
+    if (props.active){
+      setTimeout(() => emit('playFinished'), 3000)
+    }
+  }
+
 </script>
 
 <template>
@@ -91,6 +100,7 @@
       class="video-player vjs-theme-forest vjs-big-play-centered vjs-fluid"
       @mounted="mounted"
       @ended="emit('playFinished')"
+      @error="emitOnError"
     />
   </div>
 </template>
