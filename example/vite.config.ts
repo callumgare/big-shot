@@ -1,36 +1,36 @@
 import vue from "@vitejs/plugin-vue";
-import svgLoader from "vite-svg-loader";
-import cssInJsPlugin from "../src/css-in-js-rollup-plugin.js";
 import { defineConfig } from "vite";
 import copyFilesPlugin from 'rollup-plugin-copy'
 import deleteFilesPlugin from "rollup-plugin-delete";
 import path from 'path'
+import { URL } from 'url';
+
+const rootDir = new URL('.', import.meta.url).pathname;
 
 export default defineConfig({
   plugins: [
     vue(),
-    svgLoader(),
-    cssInJsPlugin(),
     copyFilesPlugin({
       hook: 'writeBundle',
       verbose: true,
       targets: [
-        { src: 'built-examples/examples/*', dest: 'built-examples' },
-        { src: 'dist/big-shot.umd.js', dest: 'built-examples/assets' }
+        { src: 'built-example/example/*', dest: 'built-example' },
+        { src: 'dist/big-shot.umd.js', dest: 'built-example/assets' },
+        { src: 'dist/style.css', dest: 'built-example/assets' }
       ]
     }),
     deleteFilesPlugin({
       hook: "closeBundle",
-      targets: ["built-examples/examples"],
+      targets: ["built-example/example"],
     }),
   ],
   base: '',
   build: {
-    outDir: 'built-examples',
+    outDir: 'built-example',
     rollupOptions: {
       input: {
-        es: path.resolve(__dirname, 'example-using-es.html'),
-        umd: path.resolve(__dirname, 'example-using-umd.html'),
+        es: path.resolve(rootDir, 'example-using-es.html'),
+        umd: path.resolve(rootDir, 'example-using-umd.html'),
       },
     }
   },

@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "vue.volar",
+    "cpylua.language-postcss",
+    "vue.vscode-typescript-vue-plugin",
+    "stylelint.vscode-stylelint"
+  ]
+}
