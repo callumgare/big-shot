@@ -1,1 +1,0 @@
-Use `npm run build-examples` to build these examples and `npm run serve-examples` to serve them.

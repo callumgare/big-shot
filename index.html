@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Big Shot Example</title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Big Shot Example</title>
   </head>
   <body>
-  <div id="app"></div>
-  <script type="module">
-    import { createApp } from 'vue'
-    import BigShotExampleUsage from './dev/big-shot-example-usage.vue'
+    <div id="app"></div>
+    <script type="module">
+      import { createApp } from 'vue'
+      import BigShotExampleUsage from './example/big-shot-example.vue'
 
-    const app = createApp(BigShotExampleUsage, {loadPlugins: true})
-    app.mount('#app')
-  </script>
+      createApp(BigShotExampleUsage, {loadPlugins: true}).mount('#app')
+    </script>
   </body>
 </html>

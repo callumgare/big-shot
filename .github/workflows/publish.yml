@@ -8,7 +8,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: npm ci
       - run: npm run lint
   release:
@@ -17,7 +17,7 @@ jobs:
     needs: lint
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: master
   
@@ -29,9 +29,9 @@ jobs:
 
       - name: Setup node
         if: steps.check.outputs.changed == 'true'
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '12.x'
+          node-version: 16
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependences
@@ -54,15 +54,15 @@ jobs:
     needs: release
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v3
 
       - name: Install and Build
         run: |
           npm ci
-          npm run build-examples
+          npm run example:build
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.1.5
         with:
           branch: gh-pages
-          folder: built-examples
+          folder: built-example
