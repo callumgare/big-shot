@@ -50,9 +50,6 @@
     if (!autoPlay.value) {
       swiperObj.value.autoplay.stop()
     }
-    swiperObj.value.on('slideChange', function () {
-      currentIndex.value = swiperObj.value.realIndex
-    });
     swiperObj.value.on('autoplayStop', function () {
       if (autoPlay.value) {
         autoPlay.value = false
@@ -67,6 +64,8 @@
     let previousIndex = 0
 
     swiperObj.value.on('slideChange', () => {
+      currentIndex.value = swiperObj.value.realIndex
+
       const newIndex = swiperObj.value.realIndex
       const numOfSlides = props.slideData.length
       const lastIndex = numOfSlides - 1
@@ -143,6 +142,7 @@
 <template>
   <div class="big-shot">
     <swiper
+      v-if="slideData.length > 0"
       v-bind="swiperProps"
       ref="swiperElm"
       @swiper="(swiper) => swiperObj = swiper"
