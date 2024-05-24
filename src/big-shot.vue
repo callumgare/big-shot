@@ -38,7 +38,8 @@
     zoom: true,
     loop: true,
     autoplay: false,
-    speed: 1 // for some reason setting this to 0 seems to break autoplay after the first transition
+    speed: 1, // for some reason setting this to 0 seems to break autoplay after the first transition
+    longSwipesRatio: 0.1,
   };
 
   const currentIndex = ref(0)
