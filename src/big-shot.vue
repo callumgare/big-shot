@@ -2,6 +2,7 @@
   import { ref, watch } from 'vue'
   import { Virtual, Keyboard, Zoom, Autoplay } from 'swiper';
   import { Swiper, SwiperSlide } from 'swiper/vue';
+  import { VideoJsPlayer } from "video.js";
   import 'swiper/css';
   import 'swiper/css/zoom';
 
@@ -24,7 +25,8 @@
   }
 
   const emit = defineEmits<{
-    (e: 'beforeSlideChangeHook', value: BeforeSlideChangeHookArgs): void
+    (e: 'beforeSlideChangeHook', value: BeforeSlideChangeHookArgs): void,
+    (e: 'videoMetadataLoaded', value: VideoJsPlayer): void,
   }>()
 
   const swiperObj = ref()
@@ -138,8 +140,8 @@
       }
     }
   })
-
 </script>
+
 <template>
   <div class="big-shot">
     <swiper
@@ -176,6 +178,7 @@
           :active="currentIndex === index"
           @play-started="slidePlayStarted"
           @play-finished="slidePlayFinished"
+          @video-metadata-loaded="(value) => emit('videoMetadataLoaded', value)"
         />
       </swiper-slide>
     </swiper>

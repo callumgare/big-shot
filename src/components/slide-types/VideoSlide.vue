@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { onUnmounted, ref, watch } from 'vue';
   import { VideoPlayer } from '@videojs-player/vue'
+  import { VideoJsPlayer } from "video.js";
   import 'video.js/dist/video-js.css'
   import 'videojs-errors';
 
@@ -13,7 +14,8 @@
 
   const emit = defineEmits<{
     (e: 'playStarted'): void,
-    (e: 'playFinished'): void
+    (e: 'playFinished'): void,
+    (e: 'videoMetadataLoaded', value: VideoJsPlayer): void,
   }>()
 
   const videoJS = ref()
@@ -91,6 +93,8 @@
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- PlayerEvent is used but because it's a type eslint doesn't pick it up
+  type PlayerEvent = {target: {player: VideoJsPlayer}}
 </script>
 
 <template>
@@ -98,6 +102,7 @@
     <video-player
       v-bind="videoJSOptions"
       class="video-player vjs-theme-forest vjs-big-play-centered vjs-fluid"
+      @loadeddata="(event: PlayerEvent) => emit('videoMetadataLoaded', event.target.player)"
       @mounted="mounted"
       @ended="emit('playFinished')"
       @error="emitOnError"
