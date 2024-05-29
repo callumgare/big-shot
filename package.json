@@ -1,6 +1,6 @@
 {
   "name": "big-shot",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "A Vue-based image/video slide show widget",
   "author": "Callum Gare <callum@gare.au>",
   "repository": "github:callumgare/big-shot",
