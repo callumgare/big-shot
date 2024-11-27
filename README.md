@@ -69,6 +69,8 @@ The props:
 An array of objects, one for each slide you want to include. Currently the two property supported are:
   * **src**\
   The url to the media you want to include.
+  * **posterSrc**\
+  (optional) If slide is type "video" then posterSrc allows to set the video's poster image.
   * **type**\
   The type of media to display. Currently the two supported values are "image" (default) and "video".
 

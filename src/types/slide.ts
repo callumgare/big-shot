@@ -8,5 +8,6 @@ export type ImageSlide = {
 export type VideoSlide = {
     type: "video",
     src: string,
+    posterSrc?: string,
     mimeType?: string,
 }
