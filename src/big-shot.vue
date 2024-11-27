@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch } from 'vue'
-  import { Virtual, Keyboard, Zoom, Autoplay } from 'swiper';
+  import { Virtual, Keyboard, Zoom, Autoplay } from 'swiper/modules';
   import { Swiper, SwiperSlide } from 'swiper/vue';
   import 'swiper/css';
   import 'swiper/css/zoom';
@@ -14,6 +14,7 @@
 
   const props = defineProps<{
     slideData: Slide[]
+    initialSlideIndex?: number
   }>()
 
   type BeforeSlideChangeHookArgs = {
@@ -53,9 +54,10 @@
     speed: 1, // for some reason setting this to 0 seems to break autoplay after the first transition
     longSwipesRatio: 0.02,
     longSwipesMs: 10,
+    initialSlide: props.initialSlideIndex,
   };
 
-  const currentIndex = ref(0)
+  const currentIndex = ref(props.initialSlideIndex ?? 0)
 
   watch(swiperObj, () => {
     if (!swiperObj.value) {
@@ -157,8 +159,8 @@
   <div class="big-shot">
     <swiper
       v-if="slideData.length > 0"
-      v-bind="swiperProps"
       ref="swiperElm"
+      v-bind="swiperProps"
       @swiper="(swiper) => swiperObj = swiper"
     >
       <template #container-start>

@@ -54,7 +54,7 @@
     "rollup-plugin-delete": "^2.0.0",
     "stylelint": "^14.16.1",
     "stylelint-config-recommended-vue": "^1.4.0",
-    "swiper": "^9.0.1",
+    "swiper": "^11.1.15",
     "typescript": "^4.9.3",
     "vite": "^4.0.0",
     "vue": "^3.2.45",
