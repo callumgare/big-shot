@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch } from 'vue';
   import { VideoSlide } from '../../types/slide';
+  import Hls from 'hls.js'
 
   const props = defineProps<{
     slide: VideoSlide,
@@ -13,6 +14,7 @@
   }>()
 
   const videoRef = ref<HTMLVideoElement | null>(null)
+  const hlsRef = ref<Hls | null>(null)
 
   function handleKeypress(event: KeyboardEvent) {
     if (!props.active || !videoRef.value) {
@@ -40,7 +42,23 @@
     // and remove it when it stops being active.
     if (props.active) {
       document.addEventListener("keydown", handleKeypress)
-      videoElm.src = props.slide.src
+      const src = props.slide.src
+      if (new URL(src.toLowerCase(), 'https://domain').pathname.endsWith('.m3u8')) {
+        if (videoElm.canPlayType('application/vnd.apple.mpegurl')) {
+          videoElm.src = src
+        }
+        else if (Hls.isSupported()) {
+          const hls = new Hls()
+          hlsRef.value = hls
+          hls.loadSource(src)
+          hls.attachMedia(videoElm)
+        }
+        else {
+          throw Error('Browser can\'t play HLS')
+        }
+      } else {
+        videoElm.src = props.slide.src
+      }
       emit('playStarted')
       videoElm.play()
     } else {
