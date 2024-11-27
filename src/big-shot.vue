@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch } from 'vue'
+  import { onMounted, onUnmounted, ref, watch } from 'vue'
   import { Virtual, Keyboard, Zoom, Autoplay } from 'swiper';
   import { Swiper, SwiperSlide } from 'swiper/vue';
   import 'swiper/css';
@@ -23,6 +23,18 @@
     length: number,
   }
 
+
+  // Disable pull down to refresh to stop it interfering with swiping.
+  function touchmoveHandler(event: TouchEvent) {
+    event.preventDefault()
+  }
+  onMounted(() => {
+    document.addEventListener('touchmove', touchmoveHandler, {passive: false})
+  })
+  onUnmounted(() => {
+    document.removeEventListener('touchmove', touchmoveHandler)
+  })
+
   const emit = defineEmits<{
     (e: 'beforeSlideChangeHook', value: BeforeSlideChangeHookArgs): void,
   }>()
@@ -39,7 +51,8 @@
     loop: true,
     autoplay: false,
     speed: 1, // for some reason setting this to 0 seems to break autoplay after the first transition
-    longSwipesRatio: 0.1,
+    longSwipesRatio: 0.02,
+    longSwipesMs: 10,
   };
 
   const currentIndex = ref(0)
@@ -181,6 +194,14 @@
     </swiper>
   </div>
 </template>
+
+<style>
+  html,
+  body {
+    /* Disable pull down to refresh to stop it interfering with swiping. */
+    overscroll-behavior-y: contain;
+  }
+</style>
 
 <style lang="postcss" scoped>
   .big-shot {
