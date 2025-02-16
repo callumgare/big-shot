@@ -13,7 +13,7 @@
 
 <template>
   <ImageSlide
-    v-if="slide.type === 'image'"
+    v-if="slide.type === 'image' || !slide.type"
     :slide="slide"
     :active="active"
   />
