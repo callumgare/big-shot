@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { onMounted, onUnmounted, ref, watch } from 'vue';
   import { VideoSlide } from '../../types/slide';
+  import { useEventListener } from '@vueuse/core'
   import Hls from 'hls.js'
 
   const props = defineProps<{
@@ -28,6 +29,18 @@
       }
     }
   }
+
+  useEventListener(videoRef, 'loadedmetadata', (event: Event & {target: HTMLVideoElement}) => {
+    let {startTime} = props.slide
+    const videoElm = event.target
+    if (startTime) {
+      if (typeof startTime === "string") {
+        startTime = (parseFloat(startTime) / 100) * videoElm.duration
+      }
+      videoElm.currentTime = startTime
+    }
+  });
+
   onUnmounted(() => document.removeEventListener('keydown', handleKeypress))
 
   function setupOrTearDownVideo() {

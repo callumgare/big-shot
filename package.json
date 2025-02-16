@@ -43,6 +43,7 @@
     "@rushstack/eslint-patch": "^1.2.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
+    "@vueuse/core": "^12.7.0",
     "concurrently": "^7.6.0",
     "eslint": "^8.33.0",
     "eslint-plugin-vue": "^9.9.0",

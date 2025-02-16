@@ -10,4 +10,5 @@ export type VideoSlide = {
     src: string,
     posterSrc?: string,
     mimeType?: string,
+    startTime?: number | `${number}%`,
 }

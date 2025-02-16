@@ -69,10 +69,13 @@ The props:
 An array of objects, one for each slide you want to include. Currently the two property supported are:
   * **src**\
   The url to the media you want to include.
+  * **type**\
+  (optional) The type of media to display. Currently the two supported values are "image" (default) and "video".
   * **posterSrc**\
   (optional) If slide is type "video" then posterSrc allows to set the video's poster image.
-  * **type**\
-  The type of media to display. Currently the two supported values are "image" (default) and "video".
+  * **startTime**\
+  (optional) If the slide is type "video" then startTime sets the start time of the video. Can be either in seconds
+  as a number or a percentage of the video's duration in a string with "%" the end (e.g. "55.8%").
 
 * **beforeSlideChangeHook**\
 As implied by the name this allows you to pass in a function which will be called when a slide change has been requested but before it occurs. This allows you to do things like load more slides or something if the user is approaching the end of the slide deck. If you give it an async function or return a promise it will block the slide change from occurring until the promise resolves. This function is called with an object containing:\
